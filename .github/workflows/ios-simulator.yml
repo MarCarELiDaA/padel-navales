@@ -20,6 +20,9 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      - name: Xcode version
+        run: xcodebuild -version
+
       - name: Get dependencies
         run: flutter pub get
 
