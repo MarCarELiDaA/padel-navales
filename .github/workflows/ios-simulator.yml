@@ -26,6 +26,12 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Show Firebase Pod versions
+        run: |
+          cd ios
+          pod install
+          grep -A 2 -E "FirebaseCore:|FirebaseCoreInternal:|FirebaseSharedSwift:|FirebaseAuth:|FirebaseFirestore:" Podfile.lock
+
       - name: Build iOS Simulator
         run: flutter build ios --simulator --debug
 
