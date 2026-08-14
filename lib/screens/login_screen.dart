@@ -385,9 +385,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email, AutofillHints.username],
+                        autofillHints: const [AutofillHints.email],
                         enableSuggestions: true,
                         autocorrect: false,
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'El email es requerido';
@@ -411,6 +412,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         autofillHints: const [AutofillHints.password],
                         enableSuggestions: true,
                         autocorrect: false,
+                        enableIMEPersonalizedLearning: false,
                         onFieldSubmitted: (_) => _login(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {

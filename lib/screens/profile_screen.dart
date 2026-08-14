@@ -41,8 +41,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (doc.exists && mounted) {
         setState(() {
           _usuario = Usuario.fromMap(doc.data()!);
-          _telefonoController.text = _usuario?.telefono ?? '';
-          _nivelPadelController.text = _usuario?.nivelPadel?.toString() ?? '';
+          final telefono = _usuario?.telefono ?? '';
+final nivelPadel = _usuario?.nivelPadel?.toString() ?? '';
+
+_telefonoController.value = TextEditingValue(
+  text: telefono,
+  selection: TextSelection.collapsed(offset: telefono.length),
+);
+
+_nivelPadelController.value = TextEditingValue(
+  text: nivelPadel,
+  selection: TextSelection.collapsed(offset: nivelPadel.length),
+);
           _isLoading = false;
         });
       }
@@ -339,7 +349,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.star,
                   title: 'Nivel de Pádel',
                   content: _usuario?.nivelPadel != null 
-                      ? '${_usuario!.nivelPadel!.toString()}/10' 
+                      ? '${_usuario!.nivelPadel!.toString()}/7' 
                       : 'No especificado',
                   isEditable: true,
                   controller: _nivelPadelController,
@@ -428,6 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               keyboardType: keyboardType == TextInputType.phone 
                   ? TextInputType.phone 
                   : TextInputType.numberWithOptions(decimal: true),
+              enableIMEPersonalizedLearning: false,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelStyle: TextStyle(color: Colors.white70),

@@ -241,6 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Nombre Completo',
                           prefixIcon: Icon(Icons.person_outlined),
                         ),
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'El nombre es requerido';
@@ -263,6 +264,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.email],
                         enableSuggestions: true,
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'El email es requerido';
@@ -285,6 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         textInputAction: TextInputAction.next,
                         autofillHints: const [AutofillHints.newPassword],
                         enableSuggestions: true,
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'La contraseña es requerida';
@@ -306,6 +309,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         obscureText: true,
                         textInputAction: TextInputAction.next,
                         enableSuggestions: true,
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Debes confirmar la contraseña';
@@ -325,6 +329,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: Icon(Icons.phone_outlined),
                         ),
                         keyboardType: TextInputType.phone,
+                        enableIMEPersonalizedLearning: false,
                         enabled: !_isLoading,
                       ),
                       const SizedBox(height: 16),
@@ -335,6 +340,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: Icon(Icons.star_outline),
                         ),
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value != null && value.isNotEmpty) {
                             final nivel = double.tryParse(value);
