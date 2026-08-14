@@ -13,7 +13,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool _isInitialized = false;
-  String _statusText = 'Inicializando...';
+  String _statusText = 'Cargando';
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
       );
 
       setState(() {
-        _statusText = 'Configurando notificaciones...';
+        _statusText = 'Cargando';
       });
 
       // Inicializar notificaciones
