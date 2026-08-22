@@ -4,7 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../utils/network_utils.dart';
 import '../theme/app_theme.dart';
+import '../config/legal_config.dart';
 import 'login_screen.dart';
+import 'terms_screen.dart';
+import 'privacy_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -26,8 +29,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Aceptaciones legales
+  bool _aceptaCondiciones = false;
+  bool _aceptaPrivacidad = false;
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validaciones de aceptaciones obligatorias
+    if (!_aceptaCondiciones) {
+      setState(() {
+        _errorMessage = 'Debes aceptar las Condiciones de Uso';
+      });
+      return;
+    }
+
+    if (!_aceptaPrivacidad) {
+      setState(() {
+        _errorMessage = 'Debes aceptar la Política de Privacidad';
+      });
+      return;
+    }
 
     if (!await NetworkUtils.isNetworkAvailable()) {
       setState(() {
@@ -43,107 +65,131 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final email = _emailController.text.trim();
-      
+
       // Primero verificar si el email ya existe en Firestore
-      final emailExistsInFirestore = await _checkEmailExistsInFirestore(email);
-      
+      final emailExistsInFirestore =
+          await _checkEmailExistsInFirestore(email);
+
       if (emailExistsInFirestore) {
-        setState(() {
-          _errorMessage = 'Ya existe una cuenta con este email en el sistema.';
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _errorMessage =
+                'Ya existe una cuenta con este email en el sistema.';
+            _isLoading = false;
+          });
+        }
         return;
       }
 
-      // Intentar crear el usuario en Firebase Auth
-      final userCredential = await _authService.createUserWithEmailAndPassword(
+      // Crear usuario en Firebase Auth
+      final userCredential =
+          await _authService.createUserWithEmailAndPassword(
         email,
         _passwordController.text.trim(),
       );
 
       final userId = userCredential.user?.uid;
+
       if (userId != null) {
+        try {
+          await _authService.saveUserData(
+            userId,
+            _nombreController.text.trim(),
+            email,
+            _telefonoController.text.trim().isEmpty
+                ? null
+                : _telefonoController.text.trim(),
+            _nivelPadelController.text.trim().isEmpty
+                ? null
+                : double.tryParse(_nivelPadelController.text.trim()),
+            aceptaCondiciones: _aceptaCondiciones,
+            aceptaPrivacidad: _aceptaPrivacidad,
+            versionCondiciones: LegalConfig.versionCondiciones,
+            versionPrivacidad: LegalConfig.versionPrivacidad,
+          );
+
+          // Enviar email de verificación
           try {
-            await _authService.saveUserData(
-              userId,
-              _nombreController.text.trim(),
-              email,
-              _telefonoController.text.trim().isEmpty
-                  ? null
-                  : _telefonoController.text.trim(),
-              _nivelPadelController.text.trim().isEmpty
-                  ? null
-                  : double.tryParse(_nivelPadelController.text.trim()),
+            await _authService.sendEmailVerification();
+          } catch (emailError) {
+            print(
+              'Error al enviar email de verificación: $emailError',
+            );
+          }
+
+          // Cerrar sesión después del registro
+          await _authService.signOut();
+
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              ),
             );
 
-            // Enviar email de verificación
-            try {
-              await _authService.sendEmailVerification();
-            } catch (emailError) {
-              print('Error al enviar email de verificación: $emailError');
-              // No fallar el registro si falla el email, pero informar
-            }
-
-            // Cerrar sesión después del registro
-            await _authService.signOut();
-
-            if (mounted) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-              
-              // Mostrar mensaje de cuenta pendiente y verificación de email
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tu cuenta ha sido creada. Revisa tu email para verificarla. Después de verificar, aparecerá pendiente de aprobación.'),
-                  backgroundColor: Colors.orange,
-                  duration: Duration(seconds: 8),
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Tu cuenta ha sido creada. Revisa tu email para verificarla. Después de verificar, aparecerá pendiente de aprobación.',
                 ),
-              );
-            }
-          } catch (firestoreError) {
-          // Si falla la escritura en Firestore, eliminar el usuario de Firebase Auth
-          // para no dejar cuentas incompletas
-          print('Error al guardar en Firestore: $firestoreError');
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 8),
+              ),
+            );
+          }
+        } catch (firestoreError) {
+          // Si falla Firestore, eliminar el usuario de Firebase Auth
+          print(
+            'Error al guardar en Firestore: $firestoreError',
+          );
+
           await _authService.currentUser?.delete();
           await _authService.signOut();
-          
+
           if (mounted) {
             setState(() {
-              _errorMessage = 'Error al guardar datos del usuario. Por favor, intenta de nuevo.';
+              _errorMessage =
+                  'Error al guardar datos del usuario. Por favor, intenta de nuevo.';
               _isLoading = false;
             });
           }
+
           return;
         }
       }
     } on FirebaseAuthException catch (e) {
-      // Si el error es que el email ya existe en Firebase Auth pero no en Firestore
       if (e.code == 'email-already-in-use') {
-        // Verificar si existe en Firestore
         final email = _emailController.text.trim();
-        final emailExistsInFirestore = await _checkEmailExistsInFirestore(email);
-        
+
+        final emailExistsInFirestore =
+            await _checkEmailExistsInFirestore(email);
+
         if (!emailExistsInFirestore) {
-          // Si no existe en Firestore, el usuario fue borrado manualmente
-          // Necesita ser eliminado de Firebase Auth por el administrador
-          setState(() {
-            _errorMessage = 'Este email estaba registrado pero fue eliminado. Contacta al administrador para que lo elimine completamente del sistema.';
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _errorMessage =
+                  'Este email estaba registrado pero fue eliminado. Contacta al administrador para que lo elimine completamente del sistema.';
+              _isLoading = false;
+            });
+          }
+
           return;
         }
       }
-      
-      setState(() {
-        _errorMessage = _getErrorMessage(e.code);
-        _isLoading = false;
-      });
+
+      if (mounted) {
+        setState(() {
+          _errorMessage = _getErrorMessage(e.code);
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Error al crear cuenta: ${e.toString()}';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Error al crear cuenta: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -153,6 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           .collection('usuarios')
           .where('email', isEqualTo: email)
           .get();
+
       return snapshot.docs.isNotEmpty;
     } catch (e) {
       print('Error al verificar email en Firestore: $e');
@@ -166,7 +213,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'invalid-email': 'Email inválido',
       'weak-password': 'La contraseña es muy débil',
     };
+
     return errorMessages[code] ?? 'Error de registro: $code';
+  }
+
+  Widget _buildCheckboxSection(
+    String label,
+    bool value,
+    Function(bool?) onChanged, {
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: CheckboxListTile(
+        value: value,
+        onChanged: _isLoading ? null : onChanged,
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            if (onTap != null)
+              TextButton(
+                onPressed: onTap,
+                child: const Text(
+                  'Ver documento',
+                  style: TextStyle(
+                    color: AppTheme.accentGreen,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        activeColor: AppTheme.accentGreen,
+      ),
+    );
   }
 
   @override
@@ -178,12 +274,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_outlined, color: Colors.red),
+            icon: const Icon(
+              Icons.logout_outlined,
+              color: Colors.red,
+            ),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -206,7 +308,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
+                constraints: const BoxConstraints(
+                  maxWidth: 400,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -221,90 +325,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 24),
                       Text(
                         'Crear Cuenta',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
+                            ?.copyWith(
+                              color: Colors.white,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Únete a nuestra comunidad de pádel y reserva tu pista de pádel en Navales',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                              color: Colors.white70,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
+
+                      // NOMBRE
                       TextFormField(
                         controller: _nombreController,
                         decoration: const InputDecoration(
                           labelText: 'Nombre Completo',
-                          prefixIcon: Icon(Icons.person_outlined),
+                          prefixIcon: Icon(
+                            Icons.person_outlined,
+                          ),
                         ),
                         enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'El nombre es requerido';
                           }
+
                           if (value.length < 3) {
                             return 'El nombre debe tener al menos 3 caracteres';
                           }
+
                           return null;
                         },
                         enabled: !_isLoading,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // EMAIL
                       TextFormField(
                         controller: _emailController,
                         decoration: const InputDecoration(
                           labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                          ),
                         ),
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
+                        autofillHints: const [
+                          AutofillHints.email,
+                        ],
                         enableSuggestions: true,
                         enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'El email es requerido';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
                             return 'Email inválido';
                           }
+
                           return null;
                         },
                         enabled: !_isLoading,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // CONTRASEÑA
                       TextFormField(
                         controller: _passwordController,
                         decoration: const InputDecoration(
                           labelText: 'Contraseña',
-                          prefixIcon: Icon(Icons.lock_outlined),
+                          prefixIcon: Icon(
+                            Icons.lock_outlined,
+                          ),
                         ),
                         obscureText: true,
                         textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.newPassword],
+                        autofillHints: const [
+                          AutofillHints.newPassword,
+                        ],
                         enableSuggestions: true,
                         enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'La contraseña es requerida';
                           }
+
                           if (value.length < 6) {
                             return 'La contraseña debe tener al menos 6 caracteres';
                           }
+
                           return null;
                         },
                         enabled: !_isLoading,
                       ),
+
                       const SizedBox(height: 16),
+
+                      // CONFIRMAR CONTRASEÑA
                       TextFormField(
                         controller: _confirmPasswordController,
                         decoration: const InputDecoration(
                           labelText: 'Confirmar Contraseña',
-                          prefixIcon: Icon(Icons.lock_outlined),
+                          prefixIcon: Icon(
+                            Icons.lock_outlined,
+                          ),
                         ),
                         obscureText: true,
                         textInputAction: TextInputAction.next,
@@ -314,60 +455,143 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Debes confirmar la contraseña';
                           }
+
                           if (value != _passwordController.text) {
                             return 'Las contraseñas no coinciden';
                           }
+
                           return null;
                         },
                         enabled: !_isLoading,
                       ),
+
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _telefonoController,
-                        decoration: const InputDecoration(
-                          labelText: 'Teléfono (opcional)',
-                          prefixIcon: Icon(Icons.phone_outlined),
-                        ),
-                        keyboardType: TextInputType.phone,
-                        enableIMEPersonalizedLearning: false,
-                        enabled: !_isLoading,
-                      ),
+
+                     // TELÉFONO
+TextFormField(
+  controller: _telefonoController,
+  decoration: const InputDecoration(
+    labelText: 'Teléfono (opcional)',
+    prefixIcon: Icon(
+      Icons.phone_outlined,
+    ),
+  ),
+  keyboardType: TextInputType.phone,
+  maxLength: 9,
+  enableIMEPersonalizedLearning: false,
+  validator: (value) {
+    if (value != null && value.isNotEmpty) {
+      if (!RegExp(r'^[0-9]{9}$').hasMatch(value)) {
+        return 'El teléfono debe tener 9 dígitos';
+      }
+    }
+
+    return null;
+  },
+  enabled: !_isLoading,
+),
                       const SizedBox(height: 16),
+
+                      // NIVEL DE PÁDEL
                       TextFormField(
                         controller: _nivelPadelController,
                         decoration: const InputDecoration(
-                          labelText: 'Nivel de Pádel (1.0-7.0, opcional)',
-                          prefixIcon: Icon(Icons.star_outline),
+                          labelText:
+                              'Nivel de Pádel (1.0-7.0, opcional)',
+                          prefixIcon: Icon(
+                            Icons.star_outline,
+                          ),
                         ),
-                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        keyboardType:
+                            const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         enableIMEPersonalizedLearning: false,
                         validator: (value) {
                           if (value != null && value.isNotEmpty) {
                             final nivel = double.tryParse(value);
-                            if (nivel == null || nivel < 1.0 || nivel > 7.0) {
+
+                            if (nivel == null ||
+                                nivel < 1.0 ||
+                                nivel > 7.0) {
                               return 'Nivel debe estar entre 1.0 y 7.0';
                             }
                           }
+
                           return null;
                         },
                         enabled: !_isLoading,
                       ),
+
+                      const SizedBox(height: 16),
+
+                      // CONDICIONES DE USO
+                      _buildCheckboxSection(
+                        'He leído y acepto las Condiciones de Uso',
+                        _aceptaCondiciones,
+                        (value) {
+                          setState(() {
+                            _aceptaCondiciones = value ?? false;
+                          });
+                        },
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const TermsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // POLÍTICA DE PRIVACIDAD
+                      _buildCheckboxSection(
+                        'He leído y acepto la Política de Privacidad',
+                        _aceptaPrivacidad,
+                        (value) {
+                          setState(() {
+                            _aceptaPrivacidad = value ?? false;
+                          });
+                        },
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const PrivacyScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
                       const SizedBox(height: 24),
+
+                      // ERROR
                       if (_errorMessage != null)
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.errorRed.withValues(alpha: 0.1),
+                            color: AppTheme.errorRed.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppTheme.errorRed),
+                            border: Border.all(
+                              color: AppTheme.errorRed,
+                            ),
                           ),
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(color: AppTheme.errorRed),
+                            style: const TextStyle(
+                              color: AppTheme.errorRed,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),
+
                       const SizedBox(height: 24),
+
+                      // BOTÓN CREAR CUENTA
                       ElevatedButton(
                         onPressed: _isLoading ? null : _register,
                         child: _isLoading
@@ -379,16 +603,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Crear Cuenta', style: TextStyle(color: Colors.white)),
+                            : const Text(
+                                'Crear Cuenta',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
+
                       const SizedBox(height: 16),
+
                       TextButton(
                         onPressed: _isLoading
                             ? null
                             : () {
                                 Navigator.of(context).pop();
                               },
-                        child: const Text('¿Ya tienes cuenta? Inicia sesión'),
+                        child: const Text(
+                          '¿Ya tienes cuenta? Inicia sesión',
+                        ),
                       ),
                     ],
                   ),
@@ -406,6 +639,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nombreController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _telefonoController.dispose();
     _nivelPadelController.dispose();
     super.dispose();

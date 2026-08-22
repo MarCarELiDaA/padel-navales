@@ -7,6 +7,13 @@ class Usuario {
   final String role;
   final String status;
 
+  // Campos de aceptaciones legales simplificados
+  final bool? aceptaCondiciones;
+  final bool? aceptaPrivacidad;
+  final DateTime? fechaAceptaciones;
+  final String? versionCondiciones;
+  final String? versionPrivacidad;
+
   Usuario({
     required this.nombre,
     required this.email,
@@ -15,6 +22,11 @@ class Usuario {
     this.fechaRegistro,
     this.role = 'user',
     this.status = 'pending',
+    this.aceptaCondiciones,
+    this.aceptaPrivacidad,
+    this.fechaAceptaciones,
+    this.versionCondiciones,
+    this.versionPrivacidad,
   });
 
   factory Usuario.fromMap(Map<String, dynamic> map) {
@@ -26,6 +38,11 @@ class Usuario {
       fechaRegistro: map['fechaRegistro']?.toDate(),
       role: map['role'] ?? 'user',
       status: map['status'] ?? 'pending',
+      aceptaCondiciones: map['aceptaCondiciones'],
+      aceptaPrivacidad: map['aceptaPrivacidad'],
+      fechaAceptaciones: map['fechaAceptaciones']?.toDate(),
+      versionCondiciones: map['versionCondiciones'],
+      versionPrivacidad: map['versionPrivacidad'],
     );
   }
 
@@ -38,6 +55,11 @@ class Usuario {
       'fechaRegistro': fechaRegistro,
       'role': role,
       'status': status,
+      'aceptaCondiciones': aceptaCondiciones,
+      'aceptaPrivacidad': aceptaPrivacidad,
+      'fechaAceptaciones': fechaAceptaciones,
+      'versionCondiciones': versionCondiciones,
+      'versionPrivacidad': versionPrivacidad,
     };
   }
 }

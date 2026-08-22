@@ -36,18 +36,22 @@ class AuthService {
     String nombre,
     String email,
     String? telefono,
-    double? nivelPadel,
-    {String role = 'user'}
-  ) async {
+    double? nivelPadel, {
+    String role = 'user',
+    bool? aceptaCondiciones,
+    bool? aceptaPrivacidad,
+    String? versionCondiciones,
+    String? versionPrivacidad,
+  }) async {
     // Si es el administrador, aprobar automáticamente
     String finalRole = role;
     String finalStatus = 'pending';
-    
+
     if (email == 'martin.bautista.sanchez@gmail.com') {
       finalRole = 'admin';
       finalStatus = 'approved';
     }
-    
+
     final usuario = Usuario(
       nombre: nombre,
       email: email,
@@ -56,13 +60,26 @@ class AuthService {
       role: finalRole,
       status: finalStatus,
       fechaRegistro: DateTime.now(),
+      aceptaCondiciones: aceptaCondiciones,
+      aceptaPrivacidad: aceptaPrivacidad,
+      fechaAceptaciones: null,
+      versionCondiciones: versionCondiciones,
+      versionPrivacidad: versionPrivacidad,
     );
 
-    // Usar set con merge: true para asegurar que el campo status se guarde
+    // Crear mapa de datos con timestamp del servidor
+    final Map<String, dynamic> userData = usuario.toMap();
+
+    // Guardar fecha de aceptaciones mediante timestamp del servidor
+    if (aceptaCondiciones == true || aceptaPrivacidad == true) {
+      userData['fechaAceptaciones'] = FieldValue.serverTimestamp();
+    }
+
+    // Usar set con merge para asegurar que el documento se guarde correctamente
     await _firestore
         .collection('usuarios')
         .doc(userId)
-        .set(usuario.toMap(), SetOptions(merge: true));
+        .set(userData, SetOptions(merge: true));
   }
 
   Future<void> signOut() async {
@@ -71,6 +88,7 @@ class AuthService {
 
   Future<void> sendEmailVerification() async {
     final user = _auth.currentUser;
+
     if (user != null && !user.emailVerified) {
       try {
         await user.sendEmailVerification();
@@ -82,19 +100,28 @@ class AuthService {
 
   Future<bool> isEmailVerified() async {
     final user = _auth.currentUser;
+
     if (user != null) {
       await user.reload();
       return user.emailVerified;
     }
+
     return false;
   }
 
-  Future<void> updateUserData(String userId, Map<String, dynamic> data) async {
-    await _firestore.collection('usuarios').doc(userId).update(data);
+  Future<void> updateUserData(
+    String userId,
+    Map<String, dynamic> data,
+  ) async {
+    await _firestore
+        .collection('usuarios')
+        .doc(userId)
+        .update(data);
   }
 
   Future<void> updatePassword(String newPassword) async {
     final user = _auth.currentUser;
+
     if (user != null) {
       await user.updatePassword(newPassword);
     }
@@ -102,131 +129,179 @@ class AuthService {
 
   Future<String?> getUserDisplayName() async {
     final user = _auth.currentUser;
+
     if (user != null) {
-      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
+      final doc = await _firestore
+          .collection('usuarios')
+          .doc(user.uid)
+          .get();
+
       if (doc.exists) {
         return doc.data()?['nombre'] ?? user.email;
       }
     }
+
     return null;
   }
 
   Future<String?> getUserStatus() async {
     final user = _auth.currentUser;
+
     if (user != null) {
-      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
+      final doc = await _firestore
+          .collection('usuarios')
+          .doc(user.uid)
+          .get();
+
       if (doc.exists) {
         final data = doc.data();
         final status = data?['status'];
-        
+
         // Si el usuario no tiene el campo status, añadirlo automáticamente
         if (status == null) {
           final userEmail = user.email;
           String newStatus = 'pending';
-          
+
           // Si es el administrador, aprobar automáticamente
           if (userEmail == 'martin.bautista.sanchez@gmail.com') {
             newStatus = 'approved';
           }
-          
-          // Actualizar el documento con el campo status
-          await _firestore.collection('usuarios').doc(user.uid).update({
+
+          await _firestore
+              .collection('usuarios')
+              .doc(user.uid)
+              .update({
             'status': newStatus,
           });
-          
+
           return newStatus;
         }
-        
+
         return status;
       }
     }
+
     return null;
   }
 
   Future<String?> getUserRole() async {
     final user = _auth.currentUser;
+
     if (user != null) {
-      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
+      final doc = await _firestore
+          .collection('usuarios')
+          .doc(user.uid)
+          .get();
+
       if (doc.exists) {
         final data = doc.data();
         final role = data?['role'];
-        
+
         // Si el usuario no tiene el campo role, añadirlo automáticamente
         if (role == null) {
           final userEmail = user.email;
           String newRole = 'user';
-          
+
           // Si es el administrador, asignar rol admin
           if (userEmail == 'martin.bautista.sanchez@gmail.com') {
             newRole = 'admin';
           }
-          
-          // Actualizar el documento con el campo role
-          await _firestore.collection('usuarios').doc(user.uid).update({
+
+          await _firestore
+              .collection('usuarios')
+              .doc(user.uid)
+              .update({
             'role': newRole,
           });
-          
+
           return newRole;
         }
-        
+
         return role;
       }
     }
+
     return null;
   }
 
   Future<Map<String, String?>> getUserStatusAndRole() async {
     final user = _auth.currentUser;
+
     if (user != null) {
-      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
+      final doc = await _firestore
+          .collection('usuarios')
+          .doc(user.uid)
+          .get();
+
       if (doc.exists) {
         final data = doc.data();
+
         final status = data?['status'];
         final role = data?['role'];
-        
+
         final userEmail = user.email;
+
         String newStatus = status ?? 'pending';
         String newRole = role ?? 'user';
-        
+
         bool needsUpdate = false;
-        
+
         // Si es el administrador, aprobar automáticamente y asignar rol admin
         if (userEmail == 'martin.bautista.sanchez@gmail.com') {
           newStatus = 'approved';
           newRole = 'admin';
           needsUpdate = true;
         }
-        
+
         // Si faltan campos, actualizar
         if (status == null || role == null || needsUpdate) {
-          await _firestore.collection('usuarios').doc(user.uid).update({
+          await _firestore
+              .collection('usuarios')
+              .doc(user.uid)
+              .update({
             'status': newStatus,
             'role': newRole,
           });
         }
-        
-        return {'status': newStatus, 'role': newRole};
+
+        return {
+          'status': newStatus,
+          'role': newRole,
+        };
       }
     }
-    return {'status': null, 'role': null};
+
+    return {
+      'status': null,
+      'role': null,
+    };
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAccount? googleUser =
+        await _googleSignIn.signIn();
+
     if (googleUser == null) {
       throw Exception('Google Sign-In cancelled');
     }
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
-    final userCredential = await _auth.signInWithCredential(credential);
+    final userCredential =
+        await _auth.signInWithCredential(credential);
 
     // Verificar si el usuario ya existe en Firestore
-    final userDoc = await _firestore.collection('usuarios').doc(userCredential.user!.uid).get();
+    final userDoc = await _firestore
+        .collection('usuarios')
+        .doc(userCredential.user!.uid)
+        .get();
+
     if (!userDoc.exists) {
       // Crear el usuario en Firestore si no existe
       await saveUserData(
@@ -236,7 +311,7 @@ class AuthService {
         null,
         null,
       );
-      
+
       // Cerrar sesión después del registro
       await _auth.signOut();
     }

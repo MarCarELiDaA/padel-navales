@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../services/notification_service.dart';
 import 'login_screen.dart';
@@ -35,6 +36,10 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
 
+      // Cerrar cualquier sesión de Firebase que haya quedado persistida.
+      // La aplicación solicitará las credenciales cada vez que se abra.
+      await FirebaseAuth.instance.signOut();
+
       setState(() {
         _statusText = 'Cargando';
       });
@@ -57,6 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
         setState(() {
           _statusText = 'Error de inicialización';
         });
+
         // En caso de error, navegar igualmente a Login para manejarlo allí
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
