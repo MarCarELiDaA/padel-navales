@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
@@ -200,6 +200,69 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Introduce tu email para recuperar la contraseña';
+      });
+      return;
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      setState(() {
+        _errorMessage = 'Introduce un email válido';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: email,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Hemos enviado un correo para restablecer tu contraseña. Revisa tu bandeja de entrada.',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = switch (e.code) {
+            'invalid-email' => 'El email no es válido',
+            'user-not-found' => 'No existe una cuenta con ese email',
+            'too-many-requests' =>
+              'Demasiadas solicitudes. Inténtalo de nuevo más tarde.',
+            _ => 'No se pudo enviar el correo de recuperación',
+          };
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'No se pudo enviar el correo de recuperación';
+        });
+      }
+    }
+  }
   String _getErrorMessage(String code) {
     const errorMessages = {
       'user-not-found': 'No existe usuario con este email',
@@ -385,6 +448,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
+                         selectAllOnFocus: false,
                         autofillHints: const [AutofillHints.email],
                         enableSuggestions: true,
                         autocorrect: false,
@@ -423,6 +487,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         enabled: !_isLoading,
                       ),
                       const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _isLoading ? null : _forgotPassword,
+                          child: const Text(
+                            '¿Has olvidado tu contraseña?',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           Checkbox(
@@ -500,3 +574,5 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
+
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
@@ -34,22 +34,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _aceptaPrivacidad = false;
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
     // Validaciones de aceptaciones obligatorias
     if (!_aceptaCondiciones) {
       setState(() {
-        _errorMessage = 'Debes aceptar las Condiciones de Uso';
+        _errorMessage = 'Debes leer las Condiciones de Uso hasta el final antes de aceptarlas';
+
       });
       return;
     }
 
     if (!_aceptaPrivacidad) {
       setState(() {
-        _errorMessage = 'Debes aceptar la Política de Privacidad';
+        _errorMessage = 'Debes leer la Política de Privacidad hasta el final antes de aceptarla';
       });
+
+
       return;
     }
+
+    // Validar el resto del formulario después de las aceptaciones
+    if (!_formKey.currentState!.validate()) return;
 
     if (!await NetworkUtils.isNetworkAvailable()) {
       setState(() {
@@ -112,9 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           try {
             await _authService.sendEmailVerification();
           } catch (emailError) {
-            print(
-              'Error al enviar email de verificación: $emailError',
-            );
+            // Error silenciado para producción
           }
 
           // Cerrar sesión después del registro
@@ -139,9 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         } catch (firestoreError) {
           // Si falla Firestore, eliminar el usuario de Firebase Auth
-          print(
-            'Error al guardar en Firestore: $firestoreError',
-          );
+          // Error silenciado para producción
 
           await _authService.currentUser?.delete();
           await _authService.signOut();
@@ -202,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error al verificar email en Firestore: $e');
+      // Error silenciado para producción
       return false;
     }
   }
@@ -220,7 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildCheckboxSection(
     String label,
     bool value,
-    Function(bool?) onChanged, {
+    Function(bool?)? onChanged, {
     VoidCallback? onTap,
   }) {
     return Container(
@@ -493,34 +493,69 @@ TextFormField(
                       const SizedBox(height: 16),
 
                       // NIVEL DE PÁDEL
-                      TextFormField(
-                        controller: _nivelPadelController,
+                      // NIVEL DE PÁDEL
+                      DropdownButtonFormField<String>(
+                        initialValue: _nivelPadelController.text.isEmpty
+                            ? null
+                            : _nivelPadelController.text,
                         decoration: const InputDecoration(
-                          labelText:
-                              'Nivel de Pádel (1.0-7.0, opcional)',
-                          prefixIcon: Icon(
-                            Icons.star_outline,
+                          labelText: 'Nivel de Pádel',
+                          prefixIcon: Icon(Icons.star_outline),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: '1.0',
+                            child: Text('Iniciación'),
                           ),
-                        ),
-                        keyboardType:
-                            const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        enableIMEPersonalizedLearning: false,
+                          DropdownMenuItem(
+                            value: '3.25',
+                            child: Text('3.25'),
+                          ),
+                          DropdownMenuItem(
+                            value: '3.50',
+                            child: Text('3.50'),
+                          ),
+                          DropdownMenuItem(
+                            value: '3.75',
+                            child: Text('3.75'),
+                          ),
+                          DropdownMenuItem(
+                            value: '4.00',
+                            child: Text('4.00'),
+                          ),
+                          DropdownMenuItem(
+                            value: '4.25',
+                            child: Text('4.25'),
+                          ),
+                          DropdownMenuItem(
+                            value: '4.50',
+                            child: Text('4.50'),
+                          ),
+                          DropdownMenuItem(
+                            value: '4.75',
+                            child: Text('4.75'),
+                          ),
+                          DropdownMenuItem(
+                            value: '5.00',
+                            child: Text('5.00'),
+                          ),
+                          DropdownMenuItem(
+                            value: '5.01',
+                            child: Text('Más de 5'),
+                          ),
+                        ],
+                        onChanged: _isLoading
+                            ? null
+                            : (value) {
+                                _nivelPadelController.text = value ?? '';
+                              },
                         validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            final nivel = double.tryParse(value);
-
-                            if (nivel == null ||
-                                nivel < 1.0 ||
-                                nivel > 7.0) {
-                              return 'Nivel debe estar entre 1.0 y 7.0';
-                            }
+                          if (value == null || value.isEmpty) {
+                            return null;
                           }
-
                           return null;
                         },
-                        enabled: !_isLoading,
                       ),
 
                       const SizedBox(height: 16),
@@ -529,18 +564,19 @@ TextFormField(
                       _buildCheckboxSection(
                         'He leído y acepto las Condiciones de Uso',
                         _aceptaCondiciones,
-                        (value) {
-                          setState(() {
-                            _aceptaCondiciones = value ?? false;
-                          });
-                        },
-                        onTap: () {
-                          Navigator.of(context).push(
+                        null, // Checkbox no interactivo - solo se marca desde TermsScreen
+                        onTap: () async {
+                          final aceptado = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const TermsScreen(),
+                              builder: (context) => const TermsScreen(),
                             ),
                           );
+                          if (aceptado == true && mounted) {
+                            setState(() {
+                              _aceptaCondiciones = true;
+                              _errorMessage = null; // Limpiar error al aceptar
+                            });
+                          }
                         },
                       ),
 
@@ -550,18 +586,19 @@ TextFormField(
                       _buildCheckboxSection(
                         'He leído y acepto la Política de Privacidad',
                         _aceptaPrivacidad,
-                        (value) {
-                          setState(() {
-                            _aceptaPrivacidad = value ?? false;
-                          });
-                        },
-                        onTap: () {
-                          Navigator.of(context).push(
+                        null, // Checkbox no interactivo - solo se marca desde PrivacyScreen
+                        onTap: () async {
+                          final aceptado = await Navigator.of(context).push<bool>(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const PrivacyScreen(),
+                              builder: (context) => const PrivacyScreen(),
                             ),
                           );
+                          if (aceptado == true && mounted) {
+                            setState(() {
+                              _aceptaPrivacidad = true;
+                              _errorMessage = null; // Limpiar error al aceptar
+                            });
+                          }
                         },
                       ),
 
@@ -592,8 +629,8 @@ TextFormField(
                       const SizedBox(height: 24),
 
                       // BOTÓN CREAR CUENTA
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _register,
+        ElevatedButton(
+  onPressed: _isLoading ? null : _register,
                         child: _isLoading
                             ? const SizedBox(
                                 height: 20,
@@ -645,3 +682,8 @@ TextFormField(
     super.dispose();
   }
 }
+
+
+
+
+

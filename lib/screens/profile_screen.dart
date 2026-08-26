@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
@@ -42,17 +43,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _usuario = Usuario.fromMap(doc.data()!);
           final telefono = _usuario?.telefono ?? '';
-final nivelPadel = _usuario?.nivelPadel?.toString() ?? '';
+          final nivelPadel = _usuario?.nivelPadel?.toString() ?? '';
 
-_telefonoController.value = TextEditingValue(
-  text: telefono,
-  selection: TextSelection.collapsed(offset: telefono.length),
-);
+          _telefonoController.value = TextEditingValue(
+            text: telefono,
+            selection: TextSelection.collapsed(offset: telefono.length),
+          );
 
-_nivelPadelController.value = TextEditingValue(
-  text: nivelPadel,
-  selection: TextSelection.collapsed(offset: nivelPadel.length),
-);
+          _nivelPadelController.value = TextEditingValue(
+            text: nivelPadel,
+            selection: TextSelection.collapsed(offset: nivelPadel.length),
+          );
           _isLoading = false;
         });
       }
@@ -345,17 +346,76 @@ _nivelPadelController.value = TextEditingValue(
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
-                _buildInfoSection(
-                  icon: Icons.star,
-                  title: 'Nivel de Pádel',
-                  content: _usuario?.nivelPadel != null 
-                      ? '${_usuario!.nivelPadel!.toString()}/7' 
-                      : 'No especificado',
-                  isEditable: true,
-                  controller: _nivelPadelController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                ),
-                const SizedBox(height: 16),
+                 DropdownButtonFormField<String>(
+                   initialValue: (() {
+                     final nivel = double.tryParse(_nivelPadelController.text);
+                     if (nivel == null) return null;
+                     if (nivel == 1.0) return '1.0';
+                     if (nivel == 3.25) return '3.25';
+                     if (nivel == 3.50) return '3.50';
+                     if (nivel == 3.75) return '3.75';
+                     if (nivel == 4.00) return '4.00';
+                     if (nivel == 4.25) return '4.25';
+                     if (nivel == 4.50) return '4.50';
+                     if (nivel == 4.75) return '4.75';
+                     if (nivel == 5.00) return '5.00';
+                     if (nivel > 5.00) return '5.01';
+                     return null;
+                   })(),
+                   decoration: const InputDecoration(
+                     labelText: 'Nivel de Pádel',
+                     prefixIcon: Icon(Icons.star_outline),
+                     border: OutlineInputBorder(),
+                   ),
+                   items: const [
+                     DropdownMenuItem(
+                       value: '1.0',
+                       child: Text('Iniciación'),
+                     ),
+                     DropdownMenuItem(
+                       value: '3.25',
+                       child: Text('3.25'),
+                     ),
+                     DropdownMenuItem(
+                       value: '3.50',
+                       child: Text('3.50'),
+                     ),
+                     DropdownMenuItem(
+                       value: '3.75',
+                       child: Text('3.75'),
+                     ),
+                     DropdownMenuItem(
+                       value: '4.00',
+                       child: Text('4.00'),
+                     ),
+                     DropdownMenuItem(
+                       value: '4.25',
+                       child: Text('4.25'),
+                     ),
+                     DropdownMenuItem(
+                       value: '4.50',
+                       child: Text('4.50'),
+                     ),
+                     DropdownMenuItem(
+                       value: '4.75',
+                       child: Text('4.75'),
+                     ),
+                     DropdownMenuItem(
+                       value: '5.00',
+                       child: Text('5.00'),
+                     ),
+                     DropdownMenuItem(
+                       value: '5.01',
+                       child: Text('Más de 5'),
+                     ),
+                   ],
+                   onChanged: (value) {
+                     if (value != null) {
+                       _nivelPadelController.text = value;
+                     }
+                   },
+                 ),
+                 const SizedBox(height: 16),
                 _buildInfoSection(
                   icon: Icons.calendar_today,
                   title: 'Fecha de Registro',
@@ -435,10 +495,20 @@ _nivelPadelController.value = TextEditingValue(
           if (isEditable && controller != null)
             TextField(
               controller: controller,
-              keyboardType: keyboardType == TextInputType.phone 
-                  ? TextInputType.phone 
-                  : TextInputType.numberWithOptions(decimal: true),
-              enableIMEPersonalizedLearning: false,
+               keyboardType: keyboardType ?? TextInputType.text,
+               enableIMEPersonalizedLearning: false,
+               inputFormatters: keyboardType == TextInputType.phone
+                   ? <TextInputFormatter>[
+                       FilteringTextInputFormatter.digitsOnly,
+                       LengthLimitingTextInputFormatter(9),
+                     ]
+                   : keyboardType == const TextInputType.numberWithOptions(decimal: true)
+                       ? <TextInputFormatter>[
+                           FilteringTextInputFormatter.allow(
+                             RegExp(r'^\d*\.?\d{0,2}'),
+                           ),
+                         ]
+                       : null,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelStyle: TextStyle(color: Colors.white70),
@@ -458,3 +528,4 @@ _nivelPadelController.value = TextEditingValue(
     );
   }
 }
+

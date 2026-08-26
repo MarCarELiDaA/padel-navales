@@ -17,7 +17,6 @@ class AdminService {
           .doc(userId)
           .update({'status': 'approved'});
     } catch (e) {
-      print('Error al aprobar usuario: $e');
       rethrow;
     }
   }
@@ -29,7 +28,6 @@ class AdminService {
           .doc(userId)
           .update({'status': 'rejected'});
     } catch (e) {
-      print('Error al denegar usuario: $e');
       rethrow;
     }
   }

@@ -6,8 +6,8 @@ class InfoScreen extends StatelessWidget {
 
   final String direccion = 'Camino Martín Vicente, 4\n37882 Navales (Salamanca)';
   final String horario = 'Lunes a Domingo\n06:30 – 23:00';
-  final String telefono = '600000000'; // Número de ejemplo
-  final String email = 'info@padelnavales.com'; // Email de ejemplo
+  final String telefono = '923 30 01 83 '; // Número de ejemplo
+  final String email = 'aytonavales@yahoo.es'; // Email de ejemplo
 
   @override
   Widget build(BuildContext context) {

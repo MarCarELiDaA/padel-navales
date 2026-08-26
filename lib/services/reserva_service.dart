@@ -21,7 +21,7 @@ class ReservaService {
         return PistaInfo.fromMap(doc.data()!);
       }
     } catch (e) {
-      print('Error al obtener información de la pista: $e');
+      // Error silenciado para producción
     }
     return null;
   }
@@ -40,7 +40,7 @@ class ReservaService {
           .map((doc) => doc.data()['horaInicio'] as String)
           .toList();
     } catch (e) {
-      print('Error al obtener horarios reservados: $e');
+      // Error silenciado para producción
       return [];
     }
   }
@@ -62,7 +62,6 @@ class ReservaService {
       final docRef = await _firestore.collection('reservas').add(reservaData);
       return docRef.id;
     } catch (e) {
-      print('Error al crear reserva: $e');
       rethrow;
     }
   }
@@ -127,7 +126,6 @@ class ReservaService {
         return docRef.id;
       });
     } catch (e) {
-      print('Error al crear reserva con verificación: $e');
       rethrow;
     }
   }
@@ -145,7 +143,7 @@ class ReservaService {
 
       return querySnapshot.docs.isEmpty;
     } catch (e) {
-      print('Error al verificar disponibilidad: $e');
+      // Error silenciado para producción
       return false;
     }
   }
@@ -164,7 +162,7 @@ class ReservaService {
         return data;
       }).toList();
     } catch (e) {
-      print('Error al obtener reservas del usuario: $e');
+      // Error silenciado para producción
       return [];
     }
   }
@@ -176,7 +174,6 @@ class ReservaService {
           .doc(reservaId)
           .update({'estadoReserva': 'CANCELADA_POR_USUARIO'});
     } catch (e) {
-      print('Error al cancelar reserva: $e');
       rethrow;
     }
   }
@@ -197,7 +194,7 @@ class ReservaService {
       }
       return totalHoras;
     } catch (e) {
-      print('Error al calcular horas reservadas: $e');
+      // Error silenciado para producción
       return 0;
     }
   }
@@ -213,7 +210,7 @@ class ReservaService {
 
       return querySnapshot.docs.length;
     } catch (e) {
-      print('Error al contar reservas: $e');
+      // Error silenciado para producción
       return 0;
     }
   }
@@ -229,7 +226,7 @@ class ReservaService {
 
       return querySnapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      print('Error al obtener reservas del usuario en día: $e');
+      // Error silenciado para producción
       return [];
     }
   }
@@ -252,7 +249,7 @@ class ReservaService {
       return fin1.isAtSameMomentAs(inicio2) || 
              inicio1.isAtSameMomentAs(inicio2.add(Duration(minutes: duracionReservaMinutos)));
     } catch (e) {
-      print('Error al verificar consecutividad: $e');
+      // Error silenciado para producción
       return false;
     }
   }
@@ -280,7 +277,7 @@ class ReservaService {
       }
       return true;
     } catch (e) {
-      print('Error al verificar consecutividad: $e');
+      // Error silenciado para producción
       return false;
     }
   }
@@ -318,7 +315,7 @@ class ReservaService {
       
       return now.isBefore(horaAntes);
     } catch (e) {
-      print('Error al validar cancelación: $e');
+      // Error silenciado para producción
       return false;
     }
   }

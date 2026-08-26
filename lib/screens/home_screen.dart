@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
         }
       } catch (e) {
-        print('Error al verificar existencia del usuario: $e');
+        // Error silenciado para producción
       }
     }
   }
@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             return;
           }
         } catch (e) {
-          print('Error al verificar límites de reserva: $e');
+          // Error silenciado para producción
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
