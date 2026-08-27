@@ -1,4 +1,4 @@
-platform :ios, '15.0'
+﻿platform :ios, '15.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -37,8 +37,6 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  pod 'FirebaseSharedSwift', '11.2.0'
-
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   target 'RunnerTests' do
@@ -55,3 +53,4 @@ post_install do |installer|
     end
   end
 end
+
