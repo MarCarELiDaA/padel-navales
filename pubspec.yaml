@@ -1,4 +1,4 @@
-﻿name: padel_navales
+name: padel_navales
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -13,9 +13,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   
-  firebase_core: 3.6.0
-  firebase_auth: 5.3.1
-  cloud_firestore: 5.4.4
+  firebase_core: 4.14.0
+  firebase_auth: 6.6.1
+  cloud_firestore: 6.9.0
   google_sign_in: ^7.2.0
   
   connectivity_plus: ^7.3.1
