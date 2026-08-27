@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
@@ -286,31 +286,31 @@ class _LoginScreenState extends State<LoginScreen> {
               final email = _emailController.text.trim();
               final password = _passwordController.text.trim();
               
-              // Intentar reenviar email de verificación
+                            // Intentar reenviar email de verificación
               try {
                 await _authService.signInWithEmailAndPassword(email, password);
                 await _authService.sendEmailVerification();
                 await _authService.signOut();
-                
-                if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Email de verificación reenviado. Revisa tu bandeja de entrada.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+
+                if (!context.mounted) return;
+
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Email de verificación reenviado. Revisa tu bandeja de entrada.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               } catch (e) {
-                if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al reenviar email: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error al reenviar email: '),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             child: const Text('Reenviar email'),
@@ -319,46 +319,46 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: () async {
               final email = _emailController.text.trim();
               final password = _passwordController.text.trim();
-              
+
               // Intentar verificar email
               try {
                 await _authService.signInWithEmailAndPassword(email, password);
                 final isVerified = await _authService.isEmailVerified();
-                
-                if (isVerified) {
 
+                if (isVerified) {
                   await _authService.signOut();
-                  
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Email verificado. Tu cuenta está pendiente de aprobación por el administrador.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } else {
-                  await _authService.signOut();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Email aún no verificado. Por favor, revisa tu bandeja de entrada.'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  }
-                }
-              } catch (e) {
-                if (mounted) {
+
+                  if (!context.mounted) return;
+
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al verificar email: ${e.toString()}'),
-                      backgroundColor: Colors.red,
+                    const SnackBar(
+                      content: Text('Email verificado. Tu cuenta está pendiente de aprobación por el administrador.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  await _authService.signOut();
+
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Email aún no verificado. Por favor, revisa tu bandeja de entrada.'),
+                      backgroundColor: Colors.orange,
                     ),
                   );
                 }
+              } catch (e) {
+                if (!context.mounted) return;
+
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error al verificar email: '),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             child: const Text('Verificar de nuevo'),
@@ -373,7 +373,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -6,7 +6,7 @@ import '../models/usuario.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -278,18 +278,16 @@ class AuthService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser =
-        await _googleSignIn.signIn();
+    await _googleSignIn.initialize();
 
-    if (googleUser == null) {
-      throw Exception('Google Sign-In cancelled');
-    }
+    final GoogleSignInAccount googleUser =
+        await _googleSignIn.authenticate();
+
 
     final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
+        googleUser.authentication;
 
     final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
