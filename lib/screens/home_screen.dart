@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/reserva_service.dart';
@@ -19,7 +19,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver {
   final _authService = AuthService();
   final _reservaService = ReservaService();
 
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _isLoadingPista = false;
   String _userRole = 'user';
+
   StreamSubscription<List<String>>? _reservedTimesSubscription;
 
   @override
@@ -50,44 +52,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Verificar si el usuario aún existe cuando la app se reanuda
       _checkUserExists();
     }
   }
 
   Future<void> _checkUserExists() async {
     final user = _authService.currentUser;
+
     if (user != null && mounted) {
       try {
         final userStatus = await _authService.getUserStatus();
+
         if (userStatus == null && mounted) {
-          // El usuario fue borrado de Firestore, cerrar sesión
           await _authService.signOut();
+
           if (mounted) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              ),
             );
           }
         }
       } catch (e) {
-        // Error silenciado para producción
+        // Error silenciado para producción.
       }
     }
   }
 
   Future<void> _checkUserRole() async {
     final user = _authService.currentUser;
+
     if (user != null && mounted) {
-      // Verificar si es el administrador por correo electrónico
-      if (user.email == 'martin.bautista.sanchez@gmail.com') {
-        setState(() {
-          _userRole = 'admin';
-        });
-      } else {
-        setState(() {
-          _userRole = 'user';
-        });
-      }
+      setState(() {
+        _userRole =
+            user.email == 'martin.bautista.sanchez@gmail.com'
+                ? 'admin'
+                : 'user';
+      });
     }
   }
 
@@ -101,10 +103,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         );
       }
+
       setState(() {
-        _availableTimes = ['06:30', '08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00', '21:30', '23:00'];
+        _availableTimes = [
+          '06:30',
+          '08:00',
+          '09:30',
+          '11:00',
+          '12:30',
+          '14:00',
+          '15:30',
+          '17:00',
+          '18:30',
+          '20:00',
+          '21:30',
+          '23:00',
+        ];
         _isLoadingPista = false;
       });
+
       return;
     }
 
@@ -113,12 +130,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
 
     final pistaInfo = await _reservaService.getPistaInfo();
-    
+
     if (mounted) {
       setState(() {
         _pistaInfo = pistaInfo;
-        _availableTimes = pistaInfo?.franjasDisponiblesPorDefecto ?? 
-            ['06:30', '08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00', '21:30', '23:00'];
+
+        _availableTimes =
+            pistaInfo?.franjasDisponiblesPorDefecto ??
+            [
+              '06:30',
+              '08:00',
+              '09:30',
+              '11:00',
+              '12:30',
+              '14:00',
+              '15:30',
+              '17:00',
+              '18:30',
+              '20:00',
+              '21:30',
+              '23:00',
+            ];
+
         _isLoadingPista = false;
       });
     }
@@ -129,7 +162,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 10)),
+      lastDate: DateTime.now().add(
+        const Duration(days: 10),
+      ),
     );
 
     if (picked != null && mounted) {
@@ -137,21 +172,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _selectedDate = picked;
         _reservedTimes = [];
       });
+
       _loadReservedTimes(picked);
     }
   }
 
   void _loadReservedTimes(DateTime date) {
-    // Cancelar subscription anterior si existe
     _reservedTimesSubscription?.cancel();
-    
-    final dateFormat = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    
+
+    final dateFormat =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
     setState(() {
       _isLoading = true;
     });
 
-    _reservedTimesSubscription = _reservaService.getHorariosReservadosStream(dateFormat).listen(
+    _reservedTimesSubscription =
+        _reservaService
+            .getHorariosReservadosStream(dateFormat)
+            .listen(
       (reservedTimes) {
         if (mounted) {
           setState(() {
@@ -174,8 +213,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_selectedDate == null) return false;
 
     final now = DateTime.now();
-    final selectedDate = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+
+    final selectedDate = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+    );
+
     final timeParts = time.split(':');
+
     final selectedTime = DateTime(
       selectedDate.year,
       selectedDate.month,
@@ -188,50 +234,68 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _selectTime(String time) async {
-    // Verificar límites del usuario antes de navegar
     if (_selectedDate != null) {
       final user = _authService.currentUser;
+
       if (user != null) {
-        final dateFormat = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
-        
+        final dateFormat =
+            '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+
         try {
-          // Verificar máximo de reservas por día
-          final puedeReservar = await _reservaService.cumpleLimiteReservasPorDia(user.uid, dateFormat);
+          final puedeReservar =
+              await _reservaService.cumpleLimiteReservasPorDia(
+            user.uid,
+            dateFormat,
+          );
+
           if (!puedeReservar) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Ya tienes dos reservas para este día'),
+                  content: Text(
+                    'Ya tienes dos reservas para este día',
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
             }
+
             return;
           }
 
-          // Verificar consecutividad
-          final noEsConsecutiva = await _reservaService.noEsConsecutivaConReservasExistentes(user.uid, dateFormat, time);
+          final noEsConsecutiva =
+              await _reservaService.noEsConsecutivaConReservasExistentes(
+            user.uid,
+            dateFormat,
+            time,
+          );
+
           if (!noEsConsecutiva) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('No puedes reservar horarios consecutivos. Debe existir un bloque de 1 hora y 30 minutos entre tus reservas.'),
+                  content: Text(
+                    'No puedes reservar horarios consecutivos. Debe existir un bloque de 1 hora y 30 minutos entre tus reservas.',
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
             }
+
             return;
           }
         } catch (e) {
-          // Error silenciado para producción
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Error al verificar disponibilidad. Inténtalo de nuevo.'),
+                content: Text(
+                  'Error al verificar disponibilidad. Inténtalo de nuevo.',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
           }
+
           return;
         }
       }
@@ -244,8 +308,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         builder: (context) => ConfirmationScreen(
           selectedDate: _selectedDate!,
           selectedTime: time,
-          pistaName: _pistaInfo?.nombrePista ?? 'Pista Padel Navales',
-          duration: _pistaInfo?.duracionPartidoMinutos ?? 90,
+          pistaName:
+              _pistaInfo?.nombrePista ?? 'Pista Padel Navales',
+          duration:
+              _pistaInfo?.duracionPartidoMinutos ?? 90,
         ),
       ),
     );
@@ -256,8 +322,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.primaryBlue,
-        title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Cerrar Sesión',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          '¿Estás seguro de que quieres cerrar sesión?',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -276,218 +348,362 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     if (confirm == true) {
       await _authService.signOut();
+
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
         );
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PADEL NAVALES'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.grey),
+  Widget _buildActionButtons(bool isWeb) {
+    final buttonHeight = isWeb ? 44.0 : 52.0;
+    final fontSize = isWeb ? 14.0 : 16.0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: buttonHeight,
+                child: ElevatedButton.icon(
+                  onPressed:
+                      _isLoadingPista ? null : _selectDate,
+                  icon: const Icon(
+                    Icons.calendar_today_outlined,
+                  ),
+                  label: Text(
+                    'Reservar Pista',
+                    style: TextStyle(fontSize: fontSize),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: buttonHeight,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const MyReservationsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.list_alt_outlined,
+                  ),
+                  label: Text(
+                    'Mis Reservas',
+                    style: TextStyle(fontSize: fontSize),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: buttonHeight,
+          width: double.infinity,
+          child: ElevatedButton.icon(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const InfoScreen(),
+                ),
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_outlined, color: Colors.grey),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryBlue,
-              AppTheme.backgroundDark,
-            ],
+            icon: const Icon(Icons.info_outline),
+            label: Text(
+              'Información del Club',
+              style: TextStyle(fontSize: fontSize),
+            ),
           ),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.04),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo
-              Image.asset(
-                'assets/images/logofinal1.png',
-                height: screenHeight * 0.15,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoadingPista ? null : _selectDate,
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      label: const Text('Reservar Pista'),
-                    ),
+        if (_userRole == 'admin') ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            height: buttonHeight,
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AdminScreen(),
                   ),
-                  SizedBox(width: screenWidth * 0.02),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const MyReservationsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.list_alt_outlined),
-                      label: const Text('Mis Reservas'),
+                );
+              },
+              icon: const Icon(
+                Icons.admin_panel_settings,
+              ),
+              label: Text(
+                'Panel Admin',
+                style: TextStyle(fontSize: fontSize),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentYellow,
+                foregroundColor: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTimeGrid(bool isWeb) {
+    final columns = isWeb ? 4 : 3;
+
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        childAspectRatio: isWeb ? 2.8 : 2.2,
+        crossAxisSpacing: isWeb ? 10 : 8,
+        mainAxisSpacing: isWeb ? 8 : 8,
+      ),
+      itemCount: _availableTimes.length,
+      itemBuilder: (context, index) {
+        final time = _availableTimes[index];
+
+        final isReserved =
+            _reservedTimes.contains(time);
+
+        final isPast = _isTimePast(time);
+
+        final isAvailable =
+            !isReserved && !isPast;
+
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: isAvailable ? 3 : 1,
+          color: isAvailable
+              ? AppTheme.accentGreen
+              : isReserved
+                  ? AppTheme.accentYellow
+                  : Colors.red,
+          child: InkWell(
+            onTap:
+                isAvailable
+                    ? () => _selectTime(time)
+                    : null,
+            borderRadius: BorderRadius.circular(10),
+            child: Center(
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isReserved
+                        ? Icons.block
+                        : isPast
+                            ? Icons.history
+                            : Icons.access_time,
+                    color: isAvailable
+                        ? Colors.white
+                        : Colors.white70,
+                    size: isWeb ? 20 : 22,
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    isReserved
+                        ? 'RESERVADO'
+                        : isPast
+                            ? 'PASADA'
+                            : time,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isWeb ? 13 : 14,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: screenHeight * 0.02),
-              ElevatedButton.icon(
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(bool isWeb) {
+    return Center(
+      child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.sports_tennis,
+            size: isWeb ? 70 : 100,
+            color: AppTheme.accentGreen,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Selecciona una fecha para ver los horarios disponibles',
+            style: TextStyle(
+              fontSize: isWeb ? 16 : 18,
+              color: AppTheme.accentWhite,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWeb = constraints.maxWidth >= 800;
+
+        final maxContentWidth =
+            isWeb ? 1050.0 : double.infinity;
+
+        final horizontalPadding =
+            isWeb ? 24.0 : 16.0;
+
+        final verticalPadding =
+            isWeb ? 12.0 : 16.0;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'PADEL NAVALES',
+              style: TextStyle(
+                fontSize: isWeb ? 20 : 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.person,
+                  color: Colors.grey,
+                ),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const InfoScreen(),
+                      builder: (context) =>
+                          const ProfileScreen(),
                     ),
                   );
                 },
-                icon: const Icon(Icons.info_outline),
-                label: const Text('Información del Club'),
               ),
-              if (_userRole == 'admin') ...[
-                SizedBox(height: screenHeight * 0.02),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AdminScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.admin_panel_settings),
-                  label: const Text('Panel Admin'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentYellow,
-                    foregroundColor: Colors.black,
-                  ),
+              IconButton(
+                icon: const Icon(
+                  Icons.logout_outlined,
+                  color: Colors.grey,
                 ),
-              ],
-              SizedBox(height: screenHeight * 0.02),
-              if (_selectedDate != null) ...[
-                Text(
-                  'Fecha seleccionada: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.045,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.accentWhite,
+                onPressed: _logout,
+              ),
+            ],
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryBlue,
+                  AppTheme.backgroundDark,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: maxContentWidth,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: screenHeight * 0.02),
-                if (_isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  Expanded(
-                    child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: screenWidth > 600 ? 3 : 2,
-                        childAspectRatio: 2,
-                        crossAxisSpacing: screenWidth * 0.02,
-                        mainAxisSpacing: screenHeight * 0.02,
-                      ),
-                      itemCount: _availableTimes.length,
-                      itemBuilder: (context, index) {
-                        final time = _availableTimes[index];
-                        final isReserved = _reservedTimes.contains(time);
-                        final isPast = _isTimePast(time);
-                        final isAvailable = !isReserved && !isPast;
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalPadding,
+                    ),
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          height: isWeb ? 80 : 110,
+                          child: Image.asset(
+                            'assets/images/logofinal1.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
 
-                        return Card(
-                          elevation: isAvailable ? 4 : 2,
-                          color: isAvailable
-                              ? AppTheme.accentGreen
-                              : isReserved
-                                  ? AppTheme.accentYellow
-                                  : Colors.red,
-                          child: InkWell(
-                            onTap: isAvailable ? () => _selectTime(time) : null,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    isReserved
-                                        ? Icons.block
-                                        : isPast
-                                            ? Icons.history
-                                            : Icons.access_time,
-                                    color: isAvailable ? Colors.white : Colors.white70,
-                                    size: screenWidth * 0.08,
-                                  ),
-                                  SizedBox(height: screenHeight * 0.01),
-                                  Text(
-                                    isReserved
-                                        ? 'RESERVADO'
-                                        : isPast
-                                            ? 'PASADA'
-                                            : time,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: screenWidth * 0.035,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                        SizedBox(
+                          height: isWeb ? 10 : 16,
+                        ),
+
+                        _buildActionButtons(isWeb),
+
+                        SizedBox(
+                          height: isWeb ? 12 : 16,
+                        ),
+
+                        if (_selectedDate != null) ...[
+                          Text(
+                            'Fecha seleccionada: '
+                            '${_selectedDate!.day}/'
+                            '${_selectedDate!.month}/'
+                            '${_selectedDate!.year}',
+                            style: TextStyle(
+                              fontSize:
+                                  isWeb ? 16 : 18,
+                              fontWeight:
+                                  FontWeight.bold,
+                              color:
+                                  AppTheme.accentWhite,
+                            ),
+                            textAlign:
+                                TextAlign.center,
+                          ),
+
+                          SizedBox(
+                            height: isWeb ? 10 : 14,
+                          ),
+
+                          if (_isLoading)
+                            const Expanded(
+                              child: Center(
+                                child:
+                                    CircularProgressIndicator(),
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: Center(
+                                child: _buildTimeGrid(
+                                  isWeb,
+                                ),
                               ),
                             ),
+                        ] else
+                          Expanded(
+                            child:
+                                _buildEmptyState(
+                              isWeb,
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-              if (_selectedDate == null) ...[
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.sports_tennis,
-                          size: screenWidth * 0.25,
-                          color: AppTheme.accentGreen,
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        Text(
-                          'Selecciona una fecha para ver los horarios disponibles',
-                          style: TextStyle(fontSize: screenWidth * 0.045, color: AppTheme.accentWhite),
-                          textAlign: TextAlign.center,
-                        ),
                       ],
                     ),
                   ),
                 ),
-              ],
-            ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

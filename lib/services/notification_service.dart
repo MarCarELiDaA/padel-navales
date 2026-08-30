@@ -1,10 +1,13 @@
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
+
   factory NotificationService() => _instance;
+
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -13,6 +16,9 @@ class NotificationService {
   bool _initialized = false;
 
   Future<void> initialize() async {
+    // Las notificaciones locales no se utilizan en la versión web.
+    if (kIsWeb) return;
+
     if (_initialized) return;
 
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -28,17 +34,17 @@ class NotificationService {
     );
 
     await _notificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // Solicitar permisos en Android 13+
+    // Solicitar permisos en Android 13+.
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
-    // Inicializar timezone
+    // Inicializar timezone.
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Europe/Madrid'));
 
@@ -46,10 +52,12 @@ class NotificationService {
   }
 
   void _onNotificationTap(NotificationResponse response) {
-    // Manejar tap en notificación si es necesario
+    // Manejar tap en notificación si es necesario.
   }
 
   Future<void> showReservationConfirmation() async {
+    if (kIsWeb) return;
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'reservas_channel',
@@ -61,13 +69,15 @@ class NotificationService {
     );
 
     const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await _notificationsPlugin.show(
-      0,
-      '🎾 Reserva realizada correctamente',
-      'Tu reserva se ha guardado correctamente.',
-      platformChannelSpecifics,
+      id: 0,
+      title: '🎾 Reserva realizada correctamente',
+      body: 'Tu reserva se ha guardado correctamente.',
+      notificationDetails: platformChannelSpecifics,
     );
   }
 
@@ -76,30 +86,43 @@ class NotificationService {
     String fecha,
     String hora,
   ) async {
-    // Parsear fecha y hora
+    if (kIsWeb) return;
+
+    // Parsear fecha y hora.
     final parts = fecha.split('/');
     if (parts.length != 3) return;
 
-    final day = int.parse(parts[0]);
-    final month = int.parse(parts[1]);
-    final year = int.parse(parts[2]);
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+
+    if (day == null || month == null || year == null) return;
 
     final timeParts = hora.split(':');
     if (timeParts.length != 2) return;
 
-    final hour = int.parse(timeParts[0]);
-    final minute = int.parse(timeParts[1]);
+    final hour = int.tryParse(timeParts[0]);
+    final minute = int.tryParse(timeParts[1]);
 
-    // Crear DateTime de la reserva
+    if (hour == null || minute == null) return;
+
+    // Crear DateTime de la reserva.
     final now = DateTime.now();
-    final reservationTime = DateTime(year, month, day, hour, minute);
+    final reservationTime = DateTime(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+    );
 
-    // Calcular hora del recordatorio (1 hora antes)
-    final reminderTime = reservationTime.subtract(const Duration(hours: 1));
+    // Calcular hora del recordatorio (1 hora antes).
+    final reminderTime =
+        reservationTime.subtract(const Duration(hours: 1));
 
-    // Verificar si el recordatorio es en el futuro
+    // Verificar si el recordatorio es en el futuro.
     if (reminderTime.isBefore(now)) {
-      return; // No programar si ya pasó o es muy pronto
+      return;
     }
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -113,21 +136,24 @@ class NotificationService {
     );
 
     const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await _notificationsPlugin.zonedSchedule(
-      reservaId.hashCode, // Usar hash del ID como ID de notificación
-      '⏰ Recordatorio de reserva',
-      'Tienes una reserva de la pista de pádel dentro de una hora.',
-      tz.TZDateTime.from(reminderTime, tz.local),
-      platformChannelSpecifics,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      id: reservaId.hashCode,
+      title: '⏰ Recordatorio de reserva',
+      body: 'Tienes una reserva de la pista de pádel dentro de una hora.',
+      scheduledDate: tz.TZDateTime.from(reminderTime, tz.local),
+      notificationDetails: platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
 
   Future<void> showCancellationNotification() async {
+    if (kIsWeb) return;
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'reservas_channel',
@@ -139,17 +165,23 @@ class NotificationService {
     );
 
     const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await _notificationsPlugin.show(
-      1,
-      'Reserva cancelada',
-      'Tu reserva ha sido cancelada correctamente.',
-      platformChannelSpecifics,
+      id: 1,
+      title: 'Reserva cancelada',
+      body: 'Tu reserva ha sido cancelada correctamente.',
+      notificationDetails: platformChannelSpecifics,
     );
   }
 
   Future<void> cancelReminder(String reservaId) async {
-    await _notificationsPlugin.cancel(reservaId.hashCode);
+    if (kIsWeb) return;
+
+    await _notificationsPlugin.cancel(
+      id: reservaId.hashCode,
+    );
   }
 }
