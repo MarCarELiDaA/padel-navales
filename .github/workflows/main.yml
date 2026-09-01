@@ -46,7 +46,7 @@ jobs:
               -in "$RUNNER_TEMP/ios_distribution.p12" \
               -noout \
               -passin stdin
-      # --------------------------------------------------
+           # --------------------------------------------------
       # Instalar provisioning profile
       # --------------------------------------------------
       - name: Install provisioning profile
@@ -58,6 +58,13 @@ jobs:
           echo "$IOS_DISTRIBUTION_MOBILEPROVISION" | base64 --decode \
             > "$HOME/Library/MobileDevice/Provisioning Profiles/4b6f5309-f013-464d-9f10-f008b2a23c03.mobileprovision"
 
+      # --------------------------------------------------
+      # Diagnóstico del certificado instalado
+      # --------------------------------------------------
+      - name: Check installed certificate
+        run: |
+          echo "=== CERTIFICADOS DE FIRMA INSTALADOS ==="
+          security find-identity -v -p codesigning "$RUNNER_TEMP/build.keychain-db" || true
       # --------------------------------------------------
       # Crear ExportOptions.plist
       # --------------------------------------------------
