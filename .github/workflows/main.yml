@@ -8,45 +8,120 @@ jobs:
     runs-on: macos-15
 
     steps:
+
+      # --------------------------------------------------
+      # Descargar proyecto
+      # --------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # --------------------------------------------------
+      # Instalar Flutter
+      # --------------------------------------------------
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.6'
           channel: stable
 
+      # --------------------------------------------------
+      # Versiones
+      # --------------------------------------------------
       - name: Flutter version
         run: flutter --version
 
       - name: Xcode version
         run: xcodebuild -version
 
+      # --------------------------------------------------
+      # Dependencias
+      # --------------------------------------------------
       - name: Get dependencies
         run: flutter pub get
 
-           # --------------------------------------------------
-      # DIAGNÓSTICO DEL CERTIFICADO P12
+      # ==================================================
+      # CERTIFICADO DE DISTRIBUCIÓN
+      # ==================================================
+
       # --------------------------------------------------
-      - name: Diagnose P12
+      # Decodificar P12
+      # --------------------------------------------------
+      - name: Decode distribution certificate
         env:
           IOS_DISTRIBUTION_P12: ${{ secrets.IOS_DISTRIBUTION_P12 }}
-          IOS_DISTRIBUTION_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
         run: |
           echo "$IOS_DISTRIBUTION_P12" | base64 --decode > "$RUNNER_TEMP/ios_distribution.p12"
 
           echo "=== ARCHIVO P12 ==="
           ls -lh "$RUNNER_TEMP/ios_distribution.p12"
 
-          echo "=== COMPROBANDO CONTRASEÑA Y P12 ==="
-          printf '%s\n' "$IOS_DISTRIBUTION_P12_PASSWORD" | \
-            openssl pkcs12 \
-              -info \
-              -in "$RUNNER_TEMP/ios_distribution.p12" \
-              -noout \
-              -passin stdin
-           # --------------------------------------------------
+      # --------------------------------------------------
+      # Crear keychain temporal
+      # --------------------------------------------------
+      - name: Create temporary keychain
+        run: |
+          security create-keychain \
+            -p "temporary" \
+            "$RUNNER_TEMP/build.keychain-db"
+
+          security set-keychain-settings \
+            -lut 21600 \
+            "$RUNNER_TEMP/build.keychain-db"
+
+          security unlock-keychain \
+            -p "temporary" \
+            "$RUNNER_TEMP/build.keychain-db"
+
+          security default-keychain \
+            -s "$RUNNER_TEMP/build.keychain-db"
+
+          security list-keychains \
+            -d user \
+            -s "$RUNNER_TEMP/build.keychain-db"
+
+      # --------------------------------------------------
+      # Instalar certificado de distribución
+      # --------------------------------------------------
+      - name: Install distribution certificate
+        env:
+          IOS_DISTRIBUTION_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
+        run: |
+          security import "$RUNNER_TEMP/ios_distribution.p12" \
+            -k "$RUNNER_TEMP/build.keychain-db" \
+            -P "$IOS_DISTRIBUTION_P12_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+
+      # --------------------------------------------------
+      # Permitir acceso a la clave privada
+      # --------------------------------------------------
+      - name: Configure keychain access
+        run: |
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "temporary" \
+            "$RUNNER_TEMP/build.keychain-db"
+
+      # --------------------------------------------------
+      # Comprobar certificado instalado
+      # --------------------------------------------------
+      - name: Check installed certificate
+        run: |
+          echo "=========================================="
+          echo "CERTIFICADOS DE FIRMA INSTALADOS"
+          echo "=========================================="
+
+          security find-identity \
+            -v \
+            -p codesigning \
+            "$RUNNER_TEMP/build.keychain-db"
+
+      # ==================================================
+      # PROVISIONING PROFILE
+      # ==================================================
+
+      # --------------------------------------------------
       # Instalar provisioning profile
       # --------------------------------------------------
       - name: Install provisioning profile
@@ -59,12 +134,20 @@ jobs:
             > "$HOME/Library/MobileDevice/Provisioning Profiles/4b6f5309-f013-464d-9f10-f008b2a23c03.mobileprovision"
 
       # --------------------------------------------------
-      # Diagnóstico del certificado instalado
+      # Comprobar provisioning profile
       # --------------------------------------------------
-      - name: Check installed certificate
+      - name: Check provisioning profile
         run: |
-          echo "=== CERTIFICADOS DE FIRMA INSTALADOS ==="
-          security find-identity -v -p codesigning "$RUNNER_TEMP/build.keychain-db" || true
+          echo "=========================================="
+          echo "PROVISIONING PROFILES"
+          echo "=========================================="
+
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+
+      # ==================================================
+      # EXPORT OPTIONS
+      # ==================================================
+
       # --------------------------------------------------
       # Crear ExportOptions.plist
       # --------------------------------------------------
@@ -74,10 +157,12 @@ jobs:
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
           "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
           <plist version="1.0">
           <dict>
+
               <key>method</key>
-              <string>app-store</string>
+              <string>app-store-connect</string>
 
               <key>signingStyle</key>
               <string>manual</string>
@@ -99,33 +184,21 @@ jobs:
 
               <key>uploadSymbols</key>
               <true/>
+
           </dict>
           </plist>
           EOF
 
       # --------------------------------------------------
-      # Comprobar certificado y perfil
+      # Mostrar ExportOptions
       # --------------------------------------------------
-      - name: Check signing configuration
+      - name: Check ExportOptions
         run: |
-          echo "=== CERTIFICADOS ==="
-          security find-identity \
-            -v \
-            -p codesigning \
-            "$RUNNER_TEMP/build.keychain-db" || true
+          cat ios/ExportOptions.plist
 
-          echo ""
-          echo "=== PROVISIONING PROFILES ==="
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
-
-      # --------------------------------------------------
-      # Crear archivo de configuración manual de firma
-      # --------------------------------------------------
-      - name: Configure manual signing
-        run: |
-          /usr/libexec/PlistBuddy \
-            -c "Set :objects:$(grep -B2 -A2 'PRODUCT_BUNDLE_IDENTIFIER = com.padelnavales.app' ios/Runner.xcodeproj/project.pbxproj | grep -m1 '^[[:space:]]*[A-F0-9]\{24\}' | tr -d ' ;'):buildSettings:CODE_SIGN_STYLE Manual" \
-            ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+      # ==================================================
+      # BUILD
+      # ==================================================
 
       # --------------------------------------------------
       # Crear Archive
@@ -137,6 +210,10 @@ jobs:
             --no-codesign \
             --build-number=${{ github.run_number }}
 
+      # ==================================================
+      # EXPORTAR IPA
+      # ==================================================
+
       # --------------------------------------------------
       # Exportar IPA firmado
       # --------------------------------------------------
@@ -146,6 +223,17 @@ jobs:
             -archivePath build/ios/archive/Runner.xcarchive \
             -exportPath build/ios/ipa \
             -exportOptionsPlist ios/ExportOptions.plist
+
+      # --------------------------------------------------
+      # Comprobar IPA
+      # --------------------------------------------------
+      - name: Check generated IPA
+        run: |
+          echo "=========================================="
+          echo "IPA GENERADA"
+          echo "=========================================="
+
+          ls -lh build/ios/ipa/
 
       # --------------------------------------------------
       # Subir IPA
