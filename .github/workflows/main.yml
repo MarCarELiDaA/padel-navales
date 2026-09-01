@@ -309,3 +309,15 @@ jobs:
           name: padel-navales-ios-release
           path: build/ios/ipa/*.ipa
           if-no-files-found: error
+      # ==================================================
+      # SUBIR A TESTFLIGHT
+      # ==================================================
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-type: ios
+          app-path: build/ios/ipa/padel_navales.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
