@@ -26,15 +26,65 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Create App Store Connect API key
+      # --------------------------------------------------
+      # INSTALAR CERTIFICADO DE DISTRIBUCIÓN
+      # --------------------------------------------------
+      - name: Install iOS Distribution certificate
         env:
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          IOS_DISTRIBUTION_P12: ${{ secrets.IOS_DISTRIBUTION_P12 }}
+          IOS_DISTRIBUTION_P12_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
         run: |
+          CERT_PATH="$RUNNER_TEMP/ios_distribution.p12"
+
+          echo "$IOS_DISTRIBUTION_P12" | base64 --decode > "$CERT_PATH"
+
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+
+          security create-keychain -p "build-password" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "build-password" "$KEYCHAIN_PATH"
+
+          security import "$CERT_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$IOS_DISTRIBUTION_P12_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "build-password" \
+            "$KEYCHAIN_PATH"
+
+      # --------------------------------------------------
+      # INSTALAR PROVISIONING PROFILE
+      # --------------------------------------------------
+      - name: Install provisioning profile
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$RUNNER_TEMP/private_keys"
+
           printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" \
             > "$RUNNER_TEMP/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
 
+          echo "Solicitando provisioning profile a Apple..."
+
+          xcrun altool \
+            --list-providers \
+            -u "$APP_STORE_CONNECT_KEY_ID" \
+            -p "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            2>/dev/null || true
+
+      # --------------------------------------------------
+      # CREAR ARCHIVO DE EXPORTACIÓN
+      # --------------------------------------------------
       - name: Create ExportOptions.plist
         run: |
           cat > ios/ExportOptions.plist <<'EOF'
@@ -44,24 +94,45 @@ jobs:
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>app-store</string>
+              <string>app-store-connect</string>
+
               <key>signingStyle</key>
-              <string>automatic</string>
+              <string>manual</string>
+
               <key>teamID</key>
               <string>TF3449NDJD</string>
+
               <key>destination</key>
               <string>export</string>
+
               <key>stripSwiftSymbols</key>
               <true/>
           </dict>
           </plist>
           EOF
 
+      # --------------------------------------------------
+      # CREAR ARCHIVO ARCHIVE
+      # --------------------------------------------------
       - name: Build iOS archive
         run: |
-          flutter build ipa --release --no-codesign \
+          flutter build ipa \
+            --release \
+            --no-codesign \
             --build-number=${{ github.run_number }}
 
+      # --------------------------------------------------
+      # MOSTRAR INFORMACIÓN DE FIRMA
+      # --------------------------------------------------
+      - name: Check installed signing certificates
+        run: |
+          security find-identity \
+            -v \
+            -p codesigning
+
+      # --------------------------------------------------
+      # EXPORTAR IPA
+      # --------------------------------------------------
       - name: Export signed IPA
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -76,10 +147,12 @@ jobs:
             -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
 
+      # --------------------------------------------------
+      # SUBIR IPA COMO ARTIFACT
+      # --------------------------------------------------
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
         with:
           name: padel-navales-ios-release
-          path: |
-            build/ios/ipa/*.ipa
+          path: build/ios/ipa/*.ipa
           if-no-files-found: error
