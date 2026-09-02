@@ -102,7 +102,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         );
       }
       setState(() {
-        _availableTimes = ['06:30', '08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00', '21:30', '23:00'];
+        _availableTimes = [
+          '06:30',
+          '08:00',
+          '09:30',
+          '11:00',
+          '12:30',
+          '14:00',
+          '15:30',
+          '17:00',
+          '18:30',
+          '20:00',
+          '21:30',
+          '23:00'
+        ];
         _isLoadingPista = false;
       });
       return;
@@ -113,12 +126,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
 
     final pistaInfo = await _reservaService.getPistaInfo();
-    
+
     if (mounted) {
       setState(() {
         _pistaInfo = pistaInfo;
-        _availableTimes = pistaInfo?.franjasDisponiblesPorDefecto ?? 
-            ['06:30', '08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00', '21:30', '23:00'];
+        _availableTimes = pistaInfo?.franjasDisponiblesPorDefecto ??
+            [
+              '06:30',
+              '08:00',
+              '09:30',
+              '11:00',
+              '12:30',
+              '14:00',
+              '15:30',
+              '17:00',
+              '18:30',
+              '20:00',
+              '21:30',
+              '23:00'
+            ];
         _isLoadingPista = false;
       });
     }
@@ -130,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 10)),
+      confirmText: 'Aceptar',
     );
 
     if (picked != null && mounted) {
@@ -144,14 +171,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _loadReservedTimes(DateTime date) {
     // Cancelar subscription anterior si existe
     _reservedTimesSubscription?.cancel();
-    
-    final dateFormat = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    
+
+    final dateFormat =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
     setState(() {
       _isLoading = true;
     });
 
-    _reservedTimesSubscription = _reservaService.getHorariosReservadosStream(dateFormat).listen(
+    _reservedTimesSubscription =
+        _reservaService.getHorariosReservadosStream(dateFormat).listen(
       (reservedTimes) {
         if (mounted) {
           setState(() {
@@ -174,7 +203,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_selectedDate == null) return false;
 
     final now = DateTime.now();
-    final selectedDate = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+    final selectedDate = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+    );
     final timeParts = time.split(':');
     final selectedTime = DateTime(
       selectedDate.year,
@@ -192,11 +225,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_selectedDate != null) {
       final user = _authService.currentUser;
       if (user != null) {
-        final dateFormat = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
-        
+        final dateFormat =
+            '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+
         try {
           // Verificar máximo de reservas por día
-          final puedeReservar = await _reservaService.cumpleLimiteReservasPorDia(user.uid, dateFormat);
+          final puedeReservar = await _reservaService
+              .cumpleLimiteReservasPorDia(user.uid, dateFormat);
           if (!puedeReservar) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -210,12 +245,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
 
           // Verificar consecutividad
-          final noEsConsecutiva = await _reservaService.noEsConsecutivaConReservasExistentes(user.uid, dateFormat, time);
+          final noEsConsecutiva = await _reservaService
+              .noEsConsecutivaConReservasExistentes(
+            user.uid,
+            dateFormat,
+            time,
+          );
           if (!noEsConsecutiva) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('No puedes reservar horarios consecutivos. Debe existir un bloque de 1 hora y 30 minutos entre tus reservas.'),
+                  content: Text(
+                    'No puedes reservar horarios consecutivos. Debe existir un bloque de 1 hora y 30 minutos entre tus reservas.',
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -227,7 +269,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Error al verificar disponibilidad. Inténtalo de nuevo.'),
+                content: Text(
+                  'Error al verificar disponibilidad. Inténtalo de nuevo.',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -256,8 +300,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.primaryBlue,
-        title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Cerrar Sesión',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          '¿Estás seguro de que quieres cerrar sesión?',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -288,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('PADEL NAVALES'),
@@ -297,7 +347,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.person, color: Colors.grey),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
               );
             },
           ),
@@ -330,33 +382,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 fit: BoxFit.contain,
               ),
               SizedBox(height: screenHeight * 0.02),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoadingPista ? null : _selectDate,
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      label: const Text('Reservar Pista'),
+
+              // Botones principales con la misma altura adaptable
+              IntrinsicHeight(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            _isLoadingPista ? null : _selectDate,
+                        icon: const Icon(
+                          Icons.calendar_today_outlined,
+                        ),
+                        label: const Text('Reservar Pista'),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: screenWidth * 0.02),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const MyReservationsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.list_alt_outlined),
-                      label: const Text('Mis Reservas'),
+                    SizedBox(width: screenWidth * 0.02),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const MyReservationsScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.list_alt_outlined,
+                        ),
+                        label: const Text('Mis Reservas'),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+
               SizedBox(height: screenHeight * 0.02),
+
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).push(
@@ -368,6 +433,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 icon: const Icon(Icons.info_outline),
                 label: const Text('Información del Club'),
               ),
+
               if (_userRole == 'admin') ...[
                 SizedBox(height: screenHeight * 0.02),
                 ElevatedButton.icon(
@@ -386,7 +452,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
               ],
+
               SizedBox(height: screenHeight * 0.02),
+
               if (_selectedDate != null) ...[
                 Text(
                   'Fecha seleccionada: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
@@ -399,11 +467,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 SizedBox(height: screenHeight * 0.02),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator())
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  )
                 else
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: screenWidth > 600 ? 3 : 2,
                         childAspectRatio: 2,
                         crossAxisSpacing: screenWidth * 0.02,
@@ -412,9 +483,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       itemCount: _availableTimes.length,
                       itemBuilder: (context, index) {
                         final time = _availableTimes[index];
-                        final isReserved = _reservedTimes.contains(time);
+                        final isReserved =
+                            _reservedTimes.contains(time);
                         final isPast = _isTimePast(time);
-                        final isAvailable = !isReserved && !isPast;
+                        final isAvailable =
+                            !isReserved && !isPast;
 
                         return Card(
                           elevation: isAvailable ? 4 : 2,
@@ -424,11 +497,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   ? AppTheme.accentYellow
                                   : Colors.red,
                           child: InkWell(
-                            onTap: isAvailable ? () => _selectTime(time) : null,
-                            borderRadius: BorderRadius.circular(12),
+                            onTap: isAvailable
+                                ? () => _selectTime(time)
+                                : null,
+                            borderRadius:
+                                BorderRadius.circular(12),
                             child: Center(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
                                 children: [
                                   Icon(
                                     isReserved
@@ -436,10 +513,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         : isPast
                                             ? Icons.history
                                             : Icons.access_time,
-                                    color: isAvailable ? Colors.white : Colors.white70,
+                                    color: isAvailable
+                                        ? Colors.white
+                                        : Colors.white70,
                                     size: screenWidth * 0.08,
                                   ),
-                                  SizedBox(height: screenHeight * 0.01),
+                                  SizedBox(
+                                    height: screenHeight * 0.01,
+                                  ),
                                   Text(
                                     isReserved
                                         ? 'RESERVADO'
@@ -449,7 +530,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: screenWidth * 0.035,
+                                      fontSize:
+                                          screenWidth * 0.035,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -462,21 +544,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
               ],
+
               if (_selectedDate == null) ...[
                 Expanded(
                   child: Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.sports_tennis,
                           size: screenWidth * 0.25,
                           color: AppTheme.accentGreen,
                         ),
-                        SizedBox(height: screenHeight * 0.02),
+                        SizedBox(
+                          height: screenHeight * 0.02,
+                        ),
                         Text(
                           'Selecciona una fecha para ver los horarios disponibles',
-                          style: TextStyle(fontSize: screenWidth * 0.045, color: AppTheme.accentWhite),
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.045,
+                            color: AppTheme.accentWhite,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],

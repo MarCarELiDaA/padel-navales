@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
-import '../services/notification_service.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -32,9 +31,6 @@ class _SplashScreenState extends State<SplashScreen> {
       setState(() {
         _statusText = 'Cargando';
       });
-
-      // Inicializar notificaciones
-      await NotificationService().initialize();
 
       if (mounted) {
         setState(() {
@@ -101,3 +97,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+

@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/reserva_service.dart';
-import '../services/notification_service.dart';
 import '../utils/network_utils.dart';
 import '../theme/app_theme.dart';
 
@@ -28,7 +26,6 @@ class ConfirmationScreen extends StatefulWidget {
 class _ConfirmationScreenState extends State<ConfirmationScreen> {
   final _authService = AuthService();
   final _reservaService = ReservaService();
-  final _notificationService = NotificationService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isLoading = false;
@@ -86,17 +83,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         'fechaCreacionReserva': FieldValue.serverTimestamp(),
       };
 
-      final reservaId = await _reservaService.crearReservaConVerificacion(reservaData);
-
-      // Mostrar notificación de confirmación
-      await _notificationService.showReservationConfirmation();
-
-      // Programar recordatorio para 1 hora antes
-      await _notificationService.scheduleReminder(
-        reservaId,
-        DateFormat('dd/MM/yyyy').format(widget.selectedDate),
-        widget.selectedTime,
-      );
+      await _reservaService.crearReservaConVerificacion(reservaData);
 
       if (mounted) {
         setState(() {
@@ -303,3 +290,5 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     );
   }
 }
+
+

@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/reserva_service.dart';
-import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
 
@@ -16,7 +15,6 @@ class MyReservationsScreen extends StatefulWidget {
 class _MyReservationsScreenState extends State<MyReservationsScreen> {
   final _authService = AuthService();
   final _reservaService = ReservaService();
-  final _notificationService = NotificationService();
 
   List<Map<String, dynamic>> _reservas = [];
   bool _isLoading = false;
@@ -189,11 +187,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
           await _reservaService.cancelarReserva(reserva['id']);
           
           // Cancelar el recordatorio asociado
-          await _notificationService.cancelReminder(reserva['id']);
-          
           // Mostrar notificación de cancelación
-          await _notificationService.showCancellationNotification();
-          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -512,3 +506,4 @@ extension ListExtension<T> on List<T> {
     return (first, second);
   }
 }
+

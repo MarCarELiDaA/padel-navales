@@ -1,8 +1,8 @@
-name: padel_navales
+﻿name: padel_navales
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+21
+version: 1.0.0+22
 
 environment:
   sdk: ^3.10.7
@@ -21,8 +21,6 @@ dependencies:
   connectivity_plus: 6.1.5
   intl: ^0.20.2
   shared_preferences: ^2.2.2
-  flutter_local_notifications: ^17.2.3
-  timezone: ^0.9.4
   url_launcher: ^6.3.1
 
 dev_dependencies:
@@ -44,4 +42,5 @@ flutter_launcher_icons:
   image_path: "assets/images/logofinal1.png"
   adaptive_icon_background: "#182B50"
   adaptive_icon_foreground: "assets/images/logofinal1.png"
+
 
