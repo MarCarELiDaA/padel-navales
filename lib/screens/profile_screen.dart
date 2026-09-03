@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../models/usuario.dart';
 import '../theme/app_theme.dart';
+import 'privacy_screen.dart';
+import 'terms_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -345,101 +347,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: _telefonoController,
                   keyboardType: TextInputType.phone,
                 ),
-                const SizedBox(height: 16),
-                 DropdownButtonFormField<String>(
-                   initialValue: (() {
-                     final nivel = double.tryParse(_nivelPadelController.text);
-                     if (nivel == null) return null;
-                     if (nivel == 1.0) return '1.0';
-                     if (nivel == 3.25) return '3.25';
-                     if (nivel == 3.50) return '3.50';
-                     if (nivel == 3.75) return '3.75';
-                     if (nivel == 4.00) return '4.00';
-                     if (nivel == 4.25) return '4.25';
-                     if (nivel == 4.50) return '4.50';
-                     if (nivel == 4.75) return '4.75';
-                     if (nivel == 5.00) return '5.00';
-                     if (nivel > 5.00) return '5.01';
-                     return null;
-                   })(),
-                   decoration: const InputDecoration(
-                     labelText: 'Nivel de Pádel',
-                     prefixIcon: Icon(Icons.star_outline),
-                     border: OutlineInputBorder(),
-                   ),
-                   items: const [
-                     DropdownMenuItem(
-                       value: '1.0',
-                       child: Text('Iniciación'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.25',
-                       child: Text('3.25'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.50',
-                       child: Text('3.50'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.75',
-                       child: Text('3.75'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.00',
-                       child: Text('4.00'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.25',
-                       child: Text('4.25'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.50',
-                       child: Text('4.50'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.75',
-                       child: Text('4.75'),
-                     ),
-                     DropdownMenuItem(
-                       value: '5.00',
-                       child: Text('5.00'),
-                     ),
-                     DropdownMenuItem(
-                       value: '5.01',
-                       child: Text('Más de 5'),
-                     ),
-                   ],
-                   onChanged: (value) {
-                     if (value != null) {
-                       _nivelPadelController.text = value;
-                     }
-                   },
-                 ),
-                 const SizedBox(height: 16),
-                _buildInfoSection(
-                  icon: Icons.calendar_today,
-                  title: 'Fecha de Registro',
-                  content: _usuario?.fechaRegistro != null
-                      ? '${_usuario!.fechaRegistro!.day}/${_usuario!.fechaRegistro!.month}/${_usuario!.fechaRegistro!.year}'
-                      : 'No especificado',
-                  isEditable: false,
+                const SizedBox(height: 16),                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: (() {
+                      final nivel = double.tryParse(_nivelPadelController.text);
+                      if (nivel == null) return null;
+                      if (nivel == 1.0) return '1.0';
+                      if (nivel == 3.25) return '3.25';
+                      if (nivel == 3.50) return '3.50';
+                      if (nivel == 3.75) return '3.75';
+                      if (nivel == 4.00) return '4.00';
+                      if (nivel == 4.25) return '4.25';
+                      if (nivel == 4.50) return '4.50';
+                      if (nivel == 4.75) return '4.75';
+                      if (nivel == 5.00) return '5.00';
+                      if (nivel > 5.00) return '5.01';
+                      return null;
+                    })(),
+                    decoration: const InputDecoration(
+                      labelText: 'Nivel de Pádel',
+                      prefixIcon: Icon(Icons.star_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: '1.0', child: Text('Iniciación')),
+                      DropdownMenuItem(value: '3.25', child: Text('3.25')),
+                      DropdownMenuItem(value: '3.50', child: Text('3.50')),
+                      DropdownMenuItem(value: '3.75', child: Text('3.75')),
+                      DropdownMenuItem(value: '4.00', child: Text('4.00')),
+                      DropdownMenuItem(value: '4.25', child: Text('4.25')),
+                      DropdownMenuItem(value: '4.50', child: Text('4.50')),
+                      DropdownMenuItem(value: '4.75', child: Text('4.75')),
+                      DropdownMenuItem(value: '5.00', child: Text('5.00')),
+                      DropdownMenuItem(value: '5.01', child: Text('Más de 5')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        _nivelPadelController.text = value;
+                      }
+                    },
+                  ),
                 ),
+                const SizedBox(height: 24),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.lock, color: AppTheme.accentGreen),
-                    title: const Text(
-                      'Cambiar Contraseña',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
-                    onTap: _showChangePasswordDialog,
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(
+                          Icons.privacy_tip_outlined,
+                          color: AppTheme.accentGreen,
+                        ),
+                        title: const Text(
+                          'Política de Privacidad',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white70,
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PrivacyScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(color: Colors.white24),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.description_outlined,
+                          color: AppTheme.accentGreen,
+                        ),
+                        title: const Text(
+                          'Condiciones de Uso',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white70,
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const TermsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -528,4 +549,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+
+
+
+
+
+
 

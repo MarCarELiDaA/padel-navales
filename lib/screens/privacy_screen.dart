@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class PrivacyScreen extends StatefulWidget {
@@ -133,6 +133,11 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                     'Versión: 1.0\n\nÚltima actualización: 22/08/2026.',
                   ),
                   const SizedBox(height: 24),
+                  _buildSection(
+                    '16. Eliminación de la cuenta y de los datos',
+                    'Las personas usuarias que deseen dejar de utilizar Pádel Navales y solicitar la eliminación de su cuenta y de sus datos personales podrán solicitarlo mediante correo electrónico a:\n\ncarmen.apa.mar@gmail.com\n\nEn la solicitud deberá indicarse que se desea eliminar la cuenta. Para garantizar que la solicitud procede de la persona titular de la cuenta, podrán solicitarse datos adicionales para verificar su identidad.\n\nUna vez recibida y verificada la solicitud, se procederá a eliminar la cuenta y los datos personales asociados, salvo aquellos datos que deban conservarse durante el tiempo necesario para cumplir obligaciones legales o para la formulación, ejercicio o defensa de posibles reclamaciones.\n\nLa solicitud será gestionada en un plazo razonable y de conformidad con la normativa aplicable en materia de protección de datos.',
+                  ),
+                  const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -205,3 +210,6 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     );
   }
 }
+
+
+
