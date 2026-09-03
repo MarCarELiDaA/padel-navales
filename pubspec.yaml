@@ -1,8 +1,8 @@
-﻿name: padel_navales
+name: padel_navales
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+23
+version: 1.0.0+24
 
 environment:
   sdk: ^3.10.7
