@@ -1,10 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../models/usuario.dart';
 import '../theme/app_theme.dart';
+import 'privacy_screen.dart';
+import 'terms_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -415,17 +417,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                      }
                    },
                  ),
-                 const SizedBox(height: 16),
-                _buildInfoSection(
-                  icon: Icons.calendar_today,
-                  title: 'Fecha de Registro',
-                  content: _usuario?.fechaRegistro != null
-                      ? '${_usuario!.fechaRegistro!.day}/${_usuario!.fechaRegistro!.month}/${_usuario!.fechaRegistro!.year}'
-                      : 'No especificado',
-                  isEditable: false,
-                ),
                 const SizedBox(height: 24),
                 Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.privacy_tip, color: AppTheme.accentGreen),
+                    title: const Text(
+                      'Política de Privacidad',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.description, color: AppTheme.accentGreen),
+                    title: const Text(
+                      'Condiciones de Uso',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TermsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),                Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
@@ -528,4 +574,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-

@@ -9,5 +9,5 @@ class LegalConfig {
   
   // URL de documentos (se pueden actualizar cuando estén disponibles)
   static const String urlCondiciones = 'TODO: URL de Condiciones de Uso';
-  static const String urlPrivacidad = 'TODO: URL de Política de Privacidad';
+  static const String urlPrivacidad = 'https://marcarelidaa.github.io/padel-navales-legal/';
 }
