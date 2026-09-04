@@ -426,6 +426,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
                   ),
                   child: ListTile(
+                    leading: const Icon(Icons.lock, color: AppTheme.accentGreen),
+                    title: const Text(
+                      'Cambiar Contraseña',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    onTap: _showChangePasswordDialog,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: ListTile(
                     leading: const Icon(Icons.privacy_tip, color: AppTheme.accentGreen),
                     title: const Text(
                       'Política de Privacidad',
