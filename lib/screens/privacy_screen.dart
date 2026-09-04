@@ -128,13 +128,13 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                     'Esta Política de Privacidad podrá actualizarse cuando resulte necesario como consecuencia de:\n\n• Cambios legislativos.\n• Cambios en el funcionamiento de la aplicación.\n• Cambios en el servicio municipal.\n• Cambios en los tratamientos realizados.\n• Instrucciones del Ayuntamiento.\n\nCada versión tendrá un número de versión y una fecha de actualización.\n\nLa aplicación podrá conservar la versión concreta aceptada por cada usuario.',
                   ),
                   const SizedBox(height: 16),
-                  _buildSection(
-                    '16. Eliminación de la cuenta y de los datos',
-                    'Las personas usuarias que deseen dejar de utilizar Pádel Navales y solicitar la eliminación de su cuenta y de los datos asociados podrán hacerlo enviando una solicitud al correo electrónico carmen.apa.mar@gmail.com.\n\nLa solicitud deberá indicar expresamente que se desea eliminar la cuenta. Para garantizar que la solicitud procede de la persona titular de la cuenta, podrá solicitarse información adicional para verificar su identidad.\n\nUna vez realizada la verificación correspondiente, se procederá a la eliminación de la cuenta y de los datos asociados, salvo aquellos datos que deban conservarse por obligación legal o para atender posibles responsabilidades.\n\nLa solicitud será gestionada dentro de un plazo razonable y conforme a la normativa de protección de datos aplicable.',
-                  ),
 _buildSection(
                     '15. Versión actual',
                     'Versión: 1.0\n\nÚltima actualización: 22/08/2026.',
+                  ),
+                  _buildSection(
+                    '16. Eliminación de la cuenta y de los datos',
+                    'Las personas usuarias que deseen dejar de utilizar Pádel Navales y solicitar la eliminación de su cuenta y de los datos asociados podrán hacerlo enviando una solicitud al correo electrónico carmen.apa.mar@gmail.com.\n\nLa solicitud deberá indicar expresamente que se desea eliminar la cuenta. Para garantizar que la solicitud procede de la persona titular de la cuenta, podrá solicitarse información adicional para verificar su identidad.\n\nUna vez realizada la verificación correspondiente, se procederá a la eliminación de la cuenta y de los datos asociados, salvo aquellos datos que deban conservarse por obligación legal o para atender posibles responsabilidades.\n\nLa solicitud será gestionada dentro de un plazo razonable y conforme a la normativa de protección de datos aplicable.',
                   ),
                   const SizedBox(height: 24),
                   Container(

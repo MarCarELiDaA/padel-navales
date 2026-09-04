@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -487,23 +487,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-                  ),
-                ),
-                const SizedBox(height: 24),                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.lock, color: AppTheme.accentGreen),
-                    title: const Text(
-                      'Cambiar Contraseña',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
-                    onTap: _showChangePasswordDialog,
                   ),
                 ),
                 const SizedBox(height: 24),
