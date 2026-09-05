@@ -2,7 +2,7 @@ name: padel_navales
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+24
+version: 1.0.0+26
 
 environment:
   sdk: ^3.10.7
@@ -43,6 +43,7 @@ flutter_launcher_icons:
   image_path: "assets/images/logofinal.jpeg"
   adaptive_icon_background: "#182B50"
   adaptive_icon_foreground: "assets/images/logofinal.jpeg"
+
 
 
 

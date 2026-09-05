@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
         
-        if (userStatus == 'denied') {
+        if (userStatus == 'rejected') {
           await _authService.signOut();
           setState(() {
             _errorMessage = 'Tu cuenta ha sido denegada por el administrador.';
@@ -169,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
         
-        if (userStatus == 'denied') {
+        if (userStatus == 'rejected') {
           await _authService.signOut();
           setState(() {
             _errorMessage = 'Tu cuenta ha sido denegada por el administrador.';
@@ -573,5 +573,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
+
 
 
