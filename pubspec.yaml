@@ -35,6 +35,7 @@ flutter:
   assets:
     - assets/images/logofinal1.png
     - assets/images/logofinal.jpeg
+    - assets/images/fondo.png
     - assets/images/pistanavales.png
 
 flutter_launcher_icons:

@@ -163,7 +163,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/logofinal1.png',
+                    'assets/images/fondo.png',
                     height: 100,
                     width: 100,
                     fit: BoxFit.contain,

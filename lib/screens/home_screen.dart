@@ -377,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             children: [
               // Logo
               Image.asset(
-                'assets/images/logofinal1.png',
+                'assets/images/fondo.png',
                 height: screenHeight * 0.15,
                 fit: BoxFit.contain,
               ),
