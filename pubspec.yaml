@@ -34,14 +34,14 @@ flutter:
 
   assets:
     - assets/images/logofinal1.png
+    - assets/images/logofinal.jpeg
     - assets/images/pistanavales.png
 
 flutter_launcher_icons:
   android: true
-  ios: true
-  image_path: "assets/images/logofinal1.png"
+  image_path: "assets/images/logofinal.jpeg"
   adaptive_icon_background: "#182B50"
-  adaptive_icon_foreground: "assets/images/logofinal1.png"
+  adaptive_icon_foreground: "assets/images/logofinal.jpeg"
 
 
 
