@@ -36,6 +36,7 @@ flutter:
 
   assets:
     - assets/images/logofinal1.png
+    - assets/images/fondo.png
     - assets/images/pistanavales.png
 
 flutter_launcher_icons:
@@ -44,4 +45,5 @@ flutter_launcher_icons:
   image_path: "assets/images/logofinal1.png"
   adaptive_icon_background: "#182B50"
   adaptive_icon_foreground: "assets/images/logofinal1.png"
+
 

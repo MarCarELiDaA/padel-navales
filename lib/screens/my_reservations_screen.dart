@@ -304,7 +304,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
           children: [
             // Logo
             Image.asset(
-              'assets/images/logofinal1.png',
+              'assets/images/fondo.png',
               height: screenHeight * 0.12,
               fit: BoxFit.contain,
             ),
@@ -330,7 +330,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(20),
                                   child: Image.asset(
-                                    'assets/images/logofinal1.png',
+                                    'assets/images/fondo.png',
                                     height: screenHeight * 0.2,
                                     width: screenWidth * 0.5,
                                     fit: BoxFit.contain,
