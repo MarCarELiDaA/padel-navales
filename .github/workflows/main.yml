@@ -269,7 +269,8 @@ jobs:
           flutter build ipa \
             --release \
             --no-codesign \
-            --build-name=1.0.0`r`n            --build-number=21
+            --build-name=1.0.0 \
+            --build-number=32
 
       # ==================================================
       # EXPORTAR IPA
