@@ -269,7 +269,7 @@ jobs:
           flutter build ipa \
             --release \
             --no-codesign \
-            --build-number=${{ github.run_number }}
+            --build-name=1.0.0`r`n            --build-number=21
 
       # ==================================================
       # EXPORTAR IPA
@@ -321,3 +321,4 @@ jobs:
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
