@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/reserva_service.dart';
@@ -427,7 +427,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ),
-<<<<<<< HEAD
         if (_userRole == 'admin') ...[
           const SizedBox(height: 10),
           SizedBox(
@@ -438,29 +437,6 @@ class _HomeScreenState extends State<HomeScreen>
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const AdminScreen(),
-=======
-        child: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.04),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo
-              Image.asset(
-                'assets/images/fondo.png',
-                height: screenHeight * 0.15,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoadingPista ? null : _selectDate,
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      label: const Text('Reservar Pista'),
-                    ),
->>>>>>> a93069f (Cambiar logo visible por fondo en iOS)
                   ),
                 );
               },
@@ -660,7 +636,7 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(
                           height: isWeb ? 80 : 110,
                           child: Image.asset(
-                            'assets/images/logofinal1.png',
+                            'assets/images/fondo.png',
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -731,3 +707,4 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
+

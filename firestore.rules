@@ -14,9 +14,12 @@ service cloud.firestore {
 
       // El administrador puede leer todos los usuarios
       allow read: if request.auth != null &&
+                    (get(
+                      /databases/$(database)/documents/usuarios/$(request.auth.uid)
+                    ).data.email == 'martin.bautista.sanchez@gmail.com' ||
                     get(
                       /databases/$(database)/documents/usuarios/$(request.auth.uid)
-                    ).data.email == 'martin.bautista.sanchez@gmail.com';
+                    ).data.email == 'rubengonzalez10@yahoo.es');
 
       // Un usuario normal solo puede leer su propio documento
       allow read: if request.auth != null &&
@@ -29,9 +32,12 @@ service cloud.firestore {
 
       // El administrador puede gestionar cualquier usuario
       allow write: if request.auth != null &&
+                     (get(
+                       /databases/$(database)/documents/usuarios/$(request.auth.uid)
+                     ).data.email == 'martin.bautista.sanchez@gmail.com' ||
                      get(
                        /databases/$(database)/documents/usuarios/$(request.auth.uid)
-                     ).data.email == 'martin.bautista.sanchez@gmail.com';
+                     ).data.email == 'rubengonzalez10@yahoo.es');
 
 
       // ------------------------------------------------------------
@@ -102,7 +108,7 @@ service cloud.firestore {
     // ============================================================
     // RESERVAS
     // ============================================================
-    match /reservas/{reservaId} {
+    match eservas/{reservaId} {
 
       // Usuarios autenticados pueden consultar reservas
       allow read: if request.auth != null;
