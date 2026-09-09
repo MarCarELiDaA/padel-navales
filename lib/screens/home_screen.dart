@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final user = _authService.currentUser;
     if (user != null && mounted) {
       // Verificar si es el administrador por correo electrónico
-      if (user.email == 'martin.bautista.sanchez@gmail.com') {
+      if (user.email == 'martin.bautista.sanchez@gmail.com' || user.email == 'rubengonzalez10@yahoo.es') {
         setState(() {
           _userRole = 'admin';
         });

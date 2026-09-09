@@ -47,7 +47,7 @@ class AuthService {
     String finalRole = role;
     String finalStatus = 'pending';
 
-    if (email == 'martin.bautista.sanchez@gmail.com') {
+    if (email == 'martin.bautista.sanchez@gmail.com' || email == 'rubengonzalez10@yahoo.es') {
       finalRole = 'admin';
       finalStatus = 'approved';
     }
@@ -163,7 +163,7 @@ class AuthService {
           String newStatus = 'pending';
 
           // Si es el administrador, aprobar automáticamente
-          if (userEmail == 'martin.bautista.sanchez@gmail.com') {
+          if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
             newStatus = 'approved';
           }
 
@@ -203,7 +203,7 @@ class AuthService {
           String newRole = 'user';
 
           // Si es el administrador, asignar rol admin
-          if (userEmail == 'martin.bautista.sanchez@gmail.com') {
+          if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
             newRole = 'admin';
           }
 
@@ -247,7 +247,7 @@ class AuthService {
         bool needsUpdate = false;
 
         // Si es el administrador, aprobar automáticamente y asignar rol admin
-        if (userEmail == 'martin.bautista.sanchez@gmail.com') {
+        if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
           newStatus = 'approved';
           newRole = 'admin';
           needsUpdate = true;
