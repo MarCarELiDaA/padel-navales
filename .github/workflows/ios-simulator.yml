@@ -35,3 +35,45 @@ jobs:
           name: padel-navales-ios-simulator
           path: build/ios/iphonesimulator/Runner.app
           if-no-files-found: error
+	      - name: Buscar simulador iPad Pro 13 pulgadas
+        run: |
+          DEVICE_LINE=$(xcrun simctl list devices available | grep -E "iPad Pro.*13-inch" | head -n 1 || true)
+
+          if [ -z "$DEVICE_LINE" ]; then
+            echo "ERROR: No se encontró un simulador iPad Pro de 13 pulgadas."
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          DEVICE_UDID=$(echo "$DEVICE_LINE" | sed -nE 's/.*\(([0-9A-F-]{36})\).*/\1/p')
+
+          echo "Dispositivo encontrado:"
+          echo "$DEVICE_LINE"
+          echo "DEVICE_UDID=$DEVICE_UDID" >> "$GITHUB_ENV"
+
+      - name: Arrancar simulador
+        run: |
+          xcrun simctl boot "$DEVICE_UDID" || true
+          xcrun simctl bootstatus "$DEVICE_UDID" -b
+
+      - name: Instalar aplicación
+        run: |
+          xcrun simctl install "$DEVICE_UDID" build/ios/iphonesimulator/Runner.app
+
+      - name: Abrir aplicación
+        run: |
+          xcrun simctl launch "$DEVICE_UDID" com.padelnavales.app
+          sleep 12
+
+      - name: Crear captura de pantalla
+        run: |
+          xcrun simctl io "$DEVICE_UDID" screenshot "$RUNNER_TEMP/padel-navales-ipad-13.png"
+          file "$RUNNER_TEMP/padel-navales-ipad-13.png"
+          sips -g pixelWidth -g pixelHeight "$RUNNER_TEMP/padel-navales-ipad-13.png"
+
+      - name: Subir captura iPad 13
+        uses: actions/upload-artifact@v4
+        with:
+          name: captura-padel-navales-ipad-13
+          path: ${{ runner.temp }}/padel-navales-ipad-13.png
+          if-no-files-found: error
