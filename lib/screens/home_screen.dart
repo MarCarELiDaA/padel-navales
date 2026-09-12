@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/reserva_service.dart';
@@ -86,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen>
     if (user != null && mounted) {
       setState(() {
         _userRole =
-            user.email == 'martin.bautista.sanchez@gmail.com'
+            user.email == 'martin.bautista.sanchez@gmail.com' ||
+            user.email == 'rubengonzalez10@yahoo.es'
                 ? 'admin'
                 : 'user';
       });
