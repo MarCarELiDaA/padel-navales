@@ -198,6 +198,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _mostrarDialogoEliminarCuenta() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.primaryBlue,
+          title: const Text(
+            '¿Eliminar cuenta?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Esta acción eliminará tu cuenta y tus datos asociados. '
+            'No podrás recuperar la cuenta una vez eliminada.',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Eliminar cuenta',
+                style: TextStyle(color: AppTheme.accentGreen),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showChangePasswordDialog() {
     _currentPasswordController.clear();
     _newPasswordController.clear();
@@ -490,22 +526,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: AppTheme.accentGreen.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: const ListTile(
-                    leading: Icon(
+                  child: ListTile(
+                    leading: const Icon(
                       Icons.delete_outline,
                       color: AppTheme.accentGreen,
                     ),
-                    title: Text(
+                    title: const Text(
                       'Eliminar cuenta',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    trailing: Icon(
+                    trailing: const Icon(
                       Icons.arrow_forward_ios,
                       color: Colors.white70,
                     ),
+                    onTap: _mostrarDialogoEliminarCuenta,
                   ),
                 ),
                 const SizedBox(height: 24),
