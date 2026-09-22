@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -40,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .collection('usuarios')
           .doc(user.uid)
           .get();
-      
+
       if (doc.exists && mounted) {
         setState(() {
           _usuario = Usuario.fromMap(doc.data()!);
@@ -88,11 +88,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     Map<String, dynamic> data = {};
-    
+
     if (telefono.isNotEmpty) {
       data['telefono'] = telefono;
     }
-    
+
     if (nivelPadelStr.isNotEmpty) {
       data['nivelPadel'] = nivelPadel;
     } else {
@@ -113,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await _authService.updateUserData(user.uid, data);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -161,12 +161,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         email: user.email!,
         password: _currentPasswordController.text,
       );
-      
+
       await user.reauthenticateWithCredential(credential);
-      
+
       // Cambiar contraseña
       await user.updatePassword(_newPasswordController.text);
-      
+
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else if (e.code == 'weak-password') {
         message = 'La nueva contraseña es muy débil';
       }
-      
+
       if (mounted) {
         setState(() {
           _errorMessage = message;
@@ -210,7 +210,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.primaryBlue,
-        title: const Text('Cambiar Contraseña', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Cambiar Contraseña',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -248,17 +251,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             ],
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           ElevatedButton(
             onPressed: _changePassword,
@@ -281,9 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           backgroundColor: AppTheme.primaryBlue,
           foregroundColor: Colors.white,
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -298,10 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryBlue,
-              AppTheme.backgroundDark,
-            ],
+            colors: [AppTheme.primaryBlue, AppTheme.backgroundDark],
           ),
         ),
         child: SafeArea(
@@ -311,17 +309,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 32),
-                Icon(
-                  Icons.person,
-                  size: 80,
-                  color: AppTheme.accentGreen,
-                ),
+                Icon(Icons.person, size: 80, color: AppTheme.accentGreen),
                 const SizedBox(height: 24),
                 Text(
                   'Información del Perfil',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: Colors.white,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.displaySmall?.copyWith(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -348,90 +342,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 16),
-                 DropdownButtonFormField<String>(
-                   initialValue: (() {
-                     final nivel = double.tryParse(_nivelPadelController.text);
-                     if (nivel == null) return null;
-                     if (nivel == 1.0) return '1.0';
-                     if (nivel == 3.25) return '3.25';
-                     if (nivel == 3.50) return '3.50';
-                     if (nivel == 3.75) return '3.75';
-                     if (nivel == 4.00) return '4.00';
-                     if (nivel == 4.25) return '4.25';
-                     if (nivel == 4.50) return '4.50';
-                     if (nivel == 4.75) return '4.75';
-                     if (nivel == 5.00) return '5.00';
-                     if (nivel > 5.00) return '5.01';
-                     return null;
-                   })(),
-                   decoration: const InputDecoration(
-                     labelText: 'Nivel de Pádel',
-                     prefixIcon: Icon(Icons.star_outline),
-                     border: OutlineInputBorder(),
-                   ),
-                   items: const [
-                     DropdownMenuItem(
-                       value: '1.0',
-                       child: Text('Iniciación'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.25',
-                       child: Text('3.25'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.50',
-                       child: Text('3.50'),
-                     ),
-                     DropdownMenuItem(
-                       value: '3.75',
-                       child: Text('3.75'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.00',
-                       child: Text('4.00'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.25',
-                       child: Text('4.25'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.50',
-                       child: Text('4.50'),
-                     ),
-                     DropdownMenuItem(
-                       value: '4.75',
-                       child: Text('4.75'),
-                     ),
-                     DropdownMenuItem(
-                       value: '5.00',
-                       child: Text('5.00'),
-                     ),
-                     DropdownMenuItem(
-                       value: '5.01',
-                       child: Text('Más de 5'),
-                     ),
-                   ],
-                   onChanged: (value) {
-                     if (value != null) {
-                       _nivelPadelController.text = value;
-                     }
-                   },
-                 ),
+                DropdownButtonFormField<String>(
+                  initialValue: (() {
+                    final nivel = double.tryParse(_nivelPadelController.text);
+                    if (nivel == null) return null;
+                    if (nivel == 1.0) return '1.0';
+                    if (nivel == 3.25) return '3.25';
+                    if (nivel == 3.50) return '3.50';
+                    if (nivel == 3.75) return '3.75';
+                    if (nivel == 4.00) return '4.00';
+                    if (nivel == 4.25) return '4.25';
+                    if (nivel == 4.50) return '4.50';
+                    if (nivel == 4.75) return '4.75';
+                    if (nivel == 5.00) return '5.00';
+                    if (nivel > 5.00) return '5.01';
+                    return null;
+                  })(),
+                  decoration: const InputDecoration(
+                    labelText: 'Nivel de Pádel',
+                    prefixIcon: Icon(Icons.star_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: '1.0', child: Text('Iniciación')),
+                    DropdownMenuItem(value: '3.25', child: Text('3.25')),
+                    DropdownMenuItem(value: '3.50', child: Text('3.50')),
+                    DropdownMenuItem(value: '3.75', child: Text('3.75')),
+                    DropdownMenuItem(value: '4.00', child: Text('4.00')),
+                    DropdownMenuItem(value: '4.25', child: Text('4.25')),
+                    DropdownMenuItem(value: '4.50', child: Text('4.50')),
+                    DropdownMenuItem(value: '4.75', child: Text('4.75')),
+                    DropdownMenuItem(value: '5.00', child: Text('5.00')),
+                    DropdownMenuItem(value: '5.01', child: Text('Más de 5')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      _nivelPadelController.text = value;
+                    }
+                  },
+                ),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: ListTile(
-                    leading: const Icon(Icons.lock, color: AppTheme.accentGreen),
+                    leading: const Icon(
+                      Icons.lock,
+                      color: AppTheme.accentGreen,
+                    ),
                     title: const Text(
                       'Cambiar Contraseña',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                    ),
                     onTap: _showChangePasswordDialog,
                   ),
                 ),
@@ -441,10 +416,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: ListTile(
-                    leading: const Icon(Icons.privacy_tip, color: AppTheme.accentGreen),
+                    leading: const Icon(
+                      Icons.privacy_tip,
+                      color: AppTheme.accentGreen,
+                    ),
                     title: const Text(
                       'Política de Privacidad',
                       style: TextStyle(
@@ -452,7 +432,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -468,10 +451,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: ListTile(
-                    leading: const Icon(Icons.description, color: AppTheme.accentGreen),
+                    leading: const Icon(
+                      Icons.description,
+                      color: AppTheme.accentGreen,
+                    ),
                     title: const Text(
                       'Condiciones de Uso',
                       style: TextStyle(
@@ -479,7 +467,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -487,6 +478,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const ListTile(
+                    leading: Icon(
+                      Icons.delete_outline,
+                      color: AppTheme.accentGreen,
+                    ),
+                    title: Text(
+                      'Eliminar cuenta',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -542,20 +561,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (isEditable && controller != null)
             TextField(
               controller: controller,
-               keyboardType: keyboardType ?? TextInputType.text,
-               enableIMEPersonalizedLearning: false,
-               inputFormatters: keyboardType == TextInputType.phone
-                   ? <TextInputFormatter>[
-                       FilteringTextInputFormatter.digitsOnly,
-                       LengthLimitingTextInputFormatter(9),
-                     ]
-                   : keyboardType == const TextInputType.numberWithOptions(decimal: true)
-                       ? <TextInputFormatter>[
-                           FilteringTextInputFormatter.allow(
-                             RegExp(r'^\d*\.?\d{0,2}'),
-                           ),
-                         ]
-                       : null,
+              keyboardType: keyboardType ?? TextInputType.text,
+              enableIMEPersonalizedLearning: false,
+              inputFormatters: keyboardType == TextInputType.phone
+                  ? <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ]
+                  : keyboardType ==
+                        const TextInputType.numberWithOptions(decimal: true)
+                  ? <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*\.?\d{0,2}'),
+                      ),
+                    ]
+                  : null,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelStyle: TextStyle(color: Colors.white70),
@@ -565,10 +585,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           else
             Text(
               content,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
         ],
       ),
