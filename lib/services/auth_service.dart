@@ -47,7 +47,8 @@ class AuthService {
     String finalRole = role;
     String finalStatus = 'pending';
 
-    if (email == 'martin.bautista.sanchez@gmail.com' || email == 'rubengonzalez10@yahoo.es') {
+    if (email == 'martin.bautista.sanchez@gmail.com' ||
+        email == 'rubengonzalez10@yahoo.es') {
       finalRole = 'admin';
       finalStatus = 'approved';
     }
@@ -109,14 +110,8 @@ class AuthService {
     return false;
   }
 
-  Future<void> updateUserData(
-    String userId,
-    Map<String, dynamic> data,
-  ) async {
-    await _firestore
-        .collection('usuarios')
-        .doc(userId)
-        .update(data);
+  Future<void> updateUserData(String userId, Map<String, dynamic> data) async {
+    await _firestore.collection('usuarios').doc(userId).update(data);
   }
 
   Future<void> updatePassword(String newPassword) async {
@@ -131,10 +126,7 @@ class AuthService {
     final user = _auth.currentUser;
 
     if (user != null) {
-      final doc = await _firestore
-          .collection('usuarios')
-          .doc(user.uid)
-          .get();
+      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
 
       if (doc.exists) {
         return doc.data()?['nombre'] ?? user.email;
@@ -148,10 +140,7 @@ class AuthService {
     final user = _auth.currentUser;
 
     if (user != null) {
-      final doc = await _firestore
-          .collection('usuarios')
-          .doc(user.uid)
-          .get();
+      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
 
       if (doc.exists) {
         final data = doc.data();
@@ -163,14 +152,12 @@ class AuthService {
           String newStatus = 'pending';
 
           // Si es el administrador, aprobar automáticamente
-          if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
+          if (userEmail == 'martin.bautista.sanchez@gmail.com' ||
+              userEmail == 'rubengonzalez10@yahoo.es') {
             newStatus = 'approved';
           }
 
-          await _firestore
-              .collection('usuarios')
-              .doc(user.uid)
-              .update({
+          await _firestore.collection('usuarios').doc(user.uid).update({
             'status': newStatus,
           });
 
@@ -188,10 +175,7 @@ class AuthService {
     final user = _auth.currentUser;
 
     if (user != null) {
-      final doc = await _firestore
-          .collection('usuarios')
-          .doc(user.uid)
-          .get();
+      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
 
       if (doc.exists) {
         final data = doc.data();
@@ -203,14 +187,12 @@ class AuthService {
           String newRole = 'user';
 
           // Si es el administrador, asignar rol admin
-          if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
+          if (userEmail == 'martin.bautista.sanchez@gmail.com' ||
+              userEmail == 'rubengonzalez10@yahoo.es') {
             newRole = 'admin';
           }
 
-          await _firestore
-              .collection('usuarios')
-              .doc(user.uid)
-              .update({
+          await _firestore.collection('usuarios').doc(user.uid).update({
             'role': newRole,
           });
 
@@ -228,10 +210,7 @@ class AuthService {
     final user = _auth.currentUser;
 
     if (user != null) {
-      final doc = await _firestore
-          .collection('usuarios')
-          .doc(user.uid)
-          .get();
+      final doc = await _firestore.collection('usuarios').doc(user.uid).get();
 
       if (doc.exists) {
         final data = doc.data();
@@ -247,7 +226,8 @@ class AuthService {
         bool needsUpdate = false;
 
         // Si es el administrador, aprobar automáticamente y asignar rol admin
-        if (userEmail == 'martin.bautista.sanchez@gmail.com' || userEmail == 'rubengonzalez10@yahoo.es') {
+        if (userEmail == 'martin.bautista.sanchez@gmail.com' ||
+            userEmail == 'rubengonzalez10@yahoo.es') {
           newStatus = 'approved';
           newRole = 'admin';
           needsUpdate = true;
@@ -255,44 +235,31 @@ class AuthService {
 
         // Si faltan campos, actualizar
         if (status == null || role == null || needsUpdate) {
-          await _firestore
-              .collection('usuarios')
-              .doc(user.uid)
-              .update({
+          await _firestore.collection('usuarios').doc(user.uid).update({
             'status': newStatus,
             'role': newRole,
           });
         }
 
-        return {
-          'status': newStatus,
-          'role': newRole,
-        };
+        return {'status': newStatus, 'role': newRole};
       }
     }
 
-    return {
-      'status': null,
-      'role': null,
-    };
+    return {'status': null, 'role': null};
   }
 
   Future<UserCredential> signInWithGoogle() async {
     await _googleSignIn.initialize();
 
-    final GoogleSignInAccount googleUser =
-        await _googleSignIn.authenticate();
+    final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-
-    final GoogleSignInAuthentication googleAuth =
-        googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
 
-    final userCredential =
-        await _auth.signInWithCredential(credential);
+    final userCredential = await _auth.signInWithCredential(credential);
 
     // Verificar si el usuario ya existe en Firestore
     final userDoc = await _firestore
@@ -315,5 +282,43 @@ class AuthService {
     }
 
     return userCredential;
+  }
+
+  Future<void> deleteAccountData() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('No hay ningún usuario autenticado.');
+    }
+
+    final userId = user.uid;
+
+    // Obtener todas las reservas asociadas al usuario.
+    final reservasSnapshot = await _firestore
+        .collection('reservas')
+        .where('usuarioId', isEqualTo: userId)
+        .get();
+
+    // Firestore permite un máximo de 500 operaciones por batch.
+    // Se procesan las reservas en grupos para evitar superar ese límite.
+    for (var i = 0; i < reservasSnapshot.docs.length; i += 500) {
+      final batch = _firestore.batch();
+
+      final fin = (i + 500 < reservasSnapshot.docs.length)
+          ? i + 500
+          : reservasSnapshot.docs.length;
+
+      for (var j = i; j < fin; j++) {
+        batch.delete(reservasSnapshot.docs[j].reference);
+      }
+
+      await batch.commit();
+    }
+
+    // Eliminar los datos del usuario en Firestore.
+    await _firestore.collection('usuarios').doc(userId).delete();
+
+    // Eliminar finalmente la cuenta de Firebase Authentication.
+    await user.delete();
   }
 }

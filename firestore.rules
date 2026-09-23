@@ -40,6 +40,10 @@ service cloud.firestore {
                      ).data.email == 'rubengonzalez10@yahoo.es');
 
 
+      // Un usuario normal puede eliminar únicamente su propio documento.
+      allow delete: if request.auth != null &&
+                     request.auth.uid == userId;
+
       // ------------------------------------------------------------
       // CREACIÓN DE USUARIOS
       // ------------------------------------------------------------
@@ -121,8 +125,9 @@ service cloud.firestore {
       allow update: if request.auth != null &&
                       resource.data.usuarioId == request.auth.uid;
 
-      // Las reservas no pueden eliminarse
-      allow delete: if false;
+      // Un usuario solo puede eliminar sus propias reservas
+      allow delete: if request.auth != null &&
+                      resource.data.usuarioId == request.auth.uid;
     }
   }
 }

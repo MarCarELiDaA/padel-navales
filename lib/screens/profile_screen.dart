@@ -25,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Usuario? _usuario;
   bool _isLoading = true;
+  bool _isDeletingAccount = false;
   String? _errorMessage;
 
   @override
@@ -198,9 +199,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _eliminarCuenta() async {
+    if (_isDeletingAccount) return;
+
+    setState(() {
+      _isDeletingAccount = true;
+    });
+
+    try {
+      await _authService.deleteAccountData();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tu cuenta ha sido eliminada correctamente.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      String message = 'No se pudo eliminar la cuenta.';
+
+      if (e.code == 'requires-recent-login') {
+        message =
+            'Por seguridad, debes volver a iniciar sesión antes de eliminar la cuenta.';
+      }
+
+      setState(() {
+        _isDeletingAccount = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isDeletingAccount = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al eliminar la cuenta: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _mostrarDialogoEliminarCuenta() {
+    if (_isDeletingAccount) return;
+
     showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: AppTheme.primaryBlue,
@@ -222,7 +279,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed: _isDeletingAccount
+                  ? null
+                  : () {
+                      Navigator.of(dialogContext).pop();
+                      _eliminarCuenta();
+                    },
               child: const Text(
                 'Eliminar cuenta',
                 style: TextStyle(color: AppTheme.accentGreen),
@@ -538,11 +600,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white70,
-                    ),
-                    onTap: _mostrarDialogoEliminarCuenta,
+                    trailing: _isDeletingAccount
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppTheme.accentGreen,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white70,
+                          ),
+                    onTap: _isDeletingAccount
+                        ? null
+                        : _mostrarDialogoEliminarCuenta,
                   ),
                 ),
                 const SizedBox(height: 24),
